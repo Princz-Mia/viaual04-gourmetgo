@@ -1,6 +1,5 @@
 import axiosInstance from "./axiosConfig";
 import { toast } from "react-toastify";
-import axios from "axios";
 
 export const getUser = () =>
   localStorage.getItem("user")
@@ -29,14 +28,11 @@ export const logout = () => {
 
 export const registerCustomer = async (registerRequest) => {
   try {
-    const response = await axios.post(
-      "http://localhost:8080/api/v1/customers/register",
-      {
-        fullName: registerRequest.fullName,
-        emailAddress: registerRequest.email,
-        password: registerRequest.password,
-      }
-    );
+    const response = await axiosInstance.post("/customers/register", {
+      fullName: registerRequest.fullName,
+      emailAddress: registerRequest.email,
+      password: registerRequest.password,
+    });
     console.log(response.data);
     return response;
   } catch (error) {
