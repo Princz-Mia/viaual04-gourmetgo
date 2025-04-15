@@ -1,8 +1,12 @@
-import React from 'react'
+import Hero from '../components/Hero'
+import JoinUsSection from '../components/JoinUsSection'
 
 const Home = () => {
   return (
-    <div>Home</div>
+    <div>
+      <Hero />
+      <JoinUsSection />
+    </div>
   )
 }
 
