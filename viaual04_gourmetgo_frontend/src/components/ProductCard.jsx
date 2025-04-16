@@ -1,9 +1,50 @@
-import React from 'react'
+import React from "react";
 
-const ProductCard = () => {
+const ProductCard = ({
+  image,
+  name,
+  description,
+  price,
+  onAddToCart
+}) => {
   return (
-    <div>ProductCard</div>
-  )
-}
+    <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col sm:flex-row w-full">
+      <div className="sm:w-1/3 w-full h-48 sm:h-auto flex-shrink-0">
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
-export default ProductCard
+      <div className="p-4 flex flex-col justify-between flex-1">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{name}</h3>
+          <p
+            className="text-gray-600 mb-4"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {description}
+          </p>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-bold text-blue-600">${price.toFixed(2)}</span>
+          <button
+            onClick={onAddToCart}
+            className="btn btn-primary btn-sm"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductCard;
