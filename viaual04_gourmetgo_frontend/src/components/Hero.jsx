@@ -37,7 +37,7 @@ const Hero = () => {
           <div className="mr-0 sm:mr-8 md:mr-16 lg:mr-64 xl:mr-96">
             <form onSubmit={handleSearch}>
               <div className="input-group">
-                <label className="input input-bordered focus:outline-none focus:ring-0" style={{ outline: 'none', boxShadow: 'none' }}>
+                <label className="input input-bordered text-black focus:outline-none focus:ring-0" style={{ outline: 'none', boxShadow: 'none' }}>
                   <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
                       <circle cx="11" cy="11" r="8"></circle>
@@ -50,7 +50,7 @@ const Hero = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                </label>  
+                </label>
                 <button type="submit" className="btn btn-primary ml-0.5">
                   Search
                 </button>
