@@ -8,7 +8,7 @@ const RestaurantCard = ({
     isOpen,
 }) => {
     const mainCategory = categories && categories.length > 0 ? categories[0] : "N/A";
-    const deliveryInfo = deliveryFee === 0 ? "Free Delivery" : `Delivery Fee: $${deliveryFee}`;
+    const deliveryInfo = deliveryFee.toFixed(2) == 0.00 ? "Free Delivery" : `Delivery Fee: $${deliveryFee.toFixed(2)}`;
 
     return (
         <div
