@@ -57,9 +57,11 @@ const mockRestaurants = [
         deliveryFee: 2.50,
         popularity: 220,
     },
+    // További mock éttermek hozzáadhatók...
 ];
 
 const Restaurants = () => {
+    // Állapotok a kereséshez, szűréshez és rendezéshez
     const [search, setSearch] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [openFilter, setOpenFilter] = useState(false);
@@ -67,10 +69,12 @@ const Restaurants = () => {
     const [sortOption, setSortOption] = useState("Most Popular");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
 
+    // Összegyűjtjük az összes elérhető kategóriát a mock adatokból.
     const allCategories = [
         ...new Set(mockRestaurants.flatMap((r) => r.categories)),
     ];
 
+    // Kategória kiválasztásának kezelése.
     const toggleCategory = (category) => {
         if (selectedCategories.includes(category)) {
             setSelectedCategories(selectedCategories.filter((c) => c !== category));
@@ -79,29 +83,36 @@ const Restaurants = () => {
         }
     };
 
+    // Szűrés és rendezés logikája.
     const filterRestaurants = () => {
         let filtered = [...mockRestaurants];
 
+        // Keresés étterem név alapján (kis- és nagybetű érzéketlen).
         if (search.trim() !== "") {
             filtered = filtered.filter((r) =>
                 r.name.toLowerCase().includes(search.toLowerCase())
             );
         }
 
+        // Konyhatípusok szerinti szűrés: ha van legalább egy kiválasztott kategória,
+        // akkor az étteremnek tartalmaznia kell legalább egyet.
         if (selectedCategories.length > 0) {
             filtered = filtered.filter((r) =>
                 selectedCategories.some((cat) => r.categories.includes(cat))
             );
         }
 
+        // Nyitva van-e szűrés.
         if (openFilter) {
             filtered = filtered.filter((r) => r.isOpen === true);
         }
 
+        // Ingyenes kiszállítás szűrés.
         if (freeDeliveryFilter) {
             filtered = filtered.filter((r) => r.freeDelivery === true);
         }
 
+        // Rendezés a választott opció alapján.
         if (sortOption === "Most Popular") {
             filtered.sort((a, b) => b.popularity - a.popularity);
         } else if (sortOption === "Best Rated") {
@@ -115,9 +126,11 @@ const Restaurants = () => {
 
     const filteredRestaurants = filterRestaurants();
 
+    // Szűrőpanel JSX, amelyet asztali sidebarban és mobil modalban használunk.
     const filterPanel = (
         <div className="bg-white p-6 space-y-4">
             <h2 className="text-xl font-semibold">Filters</h2>
+            {/* Elérhetőség: Nyitva és ingyenes kiszállítás */}
             <div className="flex flex-col gap-2">
                 <label className="flex items-center">
                     <input
@@ -138,6 +151,7 @@ const Restaurants = () => {
                     <span>Free Delivery</span>
                 </label>
             </div>
+            {/* Konyhatípusok (többszörös kiválasztás) */}
             <div>
                 <label className="block font-medium mb-1">Cuisine Types:</label>
                 <div className="grid grid-cols-2 gap-4">
@@ -162,11 +176,13 @@ const Restaurants = () => {
             <h1 className="text-3xl font-bold mb-6">Restaurants</h1>
 
             <div className="flex flex-col md:flex-row gap-6">
+                {/* Asztali nézetben a bal oldali szűrőpanel */}
                 <div className="hidden md:block md:w-1/4">
                     <div className="card bg-base-100 shadow-xl">{filterPanel}</div>
                 </div>
 
                 <div className="flex-1">
+                    {/* Kereső és rendezési opciók */}
                     <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
                         <input
                             type="text"
@@ -184,6 +200,7 @@ const Restaurants = () => {
                             <option value="Best Rated">Best Rated</option>
                             <option value="Alphabetical">Alphabetical</option>
                         </select>
+                        {/* Mobil nézetben szűrés gomb */}
                         <button
                             className="btn btn-primary block sm:hidden"
                             onClick={() => setFilterModalOpen(true)}
@@ -192,6 +209,7 @@ const Restaurants = () => {
                         </button>
                     </div>
 
+                    {/* Étterem kártyák rácsos elrendezése – kissé szorosabban */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredRestaurants.map((restaurant) => (
                             <RestaurantCard
@@ -209,6 +227,7 @@ const Restaurants = () => {
                 </div>
             </div>
 
+            {/* Mobil szűrő modal */}
             {filterModalOpen && (
                 <div className="modal modal-open">
                     <div className="modal-box">
