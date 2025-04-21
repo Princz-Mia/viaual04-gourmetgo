@@ -5,10 +5,27 @@ const ProductCard = ({
   name,
   description,
   price,
-  onAddToCart
+  showAddToCart = true,
+  onAddToCart,
+  clickable = true,
+  onCardClick,
 }) => {
+  const handleCardClick = () => {
+    if (clickable && onCardClick) {
+      onCardClick();
+    }
+  };
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    onAddToCart && onAddToCart();
+  };
+
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col sm:flex-row w-full">
+    <div
+      onClick={handleCardClick}
+      className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col sm:flex-row w-full ${clickable ? 'cursor-pointer' : ''}`}
+    >
       <div className="sm:w-1/3 w-full h-48 sm:h-auto flex-shrink-0">
         <img
           src={image}
@@ -33,14 +50,19 @@ const ProductCard = ({
             {description}
           </p>
         </div>
+
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-blue-600">${price.toFixed(2)}</span>
-          <button
-            onClick={onAddToCart}
-            className="btn btn-primary btn-sm"
-          >
-            Add to Cart
-          </button>
+          <span className="text-lg font-bold text-blue-600">
+            ${price.toFixed(2)}
+          </span>
+          {showAddToCart && onAddToCart && (
+            <button
+              onClick={handleAddToCart}
+              className="btn btn-primary btn-sm"
+            >
+              Add to Cart
+            </button>
+          )}
         </div>
       </div>
     </div>
