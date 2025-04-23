@@ -12,8 +12,9 @@ export const login = async (loginRequest) => {
       emailAddress: loginRequest.email,
       password: loginRequest.password,
     });
-    localStorage.setItem("user", JSON.stringify(response.data.data));
-    return response;
+    const { id, token } = response.data.data;
+    localStorage.setItem("user", JSON.stringify({ id, token }));
+    return { id, token };
   } catch (error) {
     toast.error(
       error.response?.data?.message || "An error occurred during login!"
