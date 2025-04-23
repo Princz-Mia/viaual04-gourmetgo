@@ -109,7 +109,7 @@ const Restaurants = () => {
 
         // Ingyenes kiszállítás szűrés.
         if (freeDeliveryFilter) {
-            filtered = filtered.filter((r) => r.freeDelivery === true);
+            filtered = filtered.filter((r) => r.deliveryFee.toFixed(2) == 0.00);
         }
 
         // Rendezés a választott opció alapján.
