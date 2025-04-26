@@ -16,6 +16,7 @@ import java.util.UUID;
 @RequestMapping("${api.prefix}/admins")
 @RequiredArgsConstructor
 public class AdminController {
+    
     private final IAdminService adminService;
 
     @GetMapping("/{id}")
