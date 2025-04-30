@@ -77,7 +77,10 @@ export default function Login() {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-500 hover:underline">Register</Link>
+          <Link to="/registration" className="text-blue-500 hover:underline">Register</Link>
+        </p>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          <Link to="/forgot-password" className="text-blue-500 hover:underline">Forgot your password?</Link>
         </p>
       </div>
     </div>
