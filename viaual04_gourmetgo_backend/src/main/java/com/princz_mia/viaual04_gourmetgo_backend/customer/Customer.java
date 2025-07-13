@@ -19,24 +19,16 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Customer extends User {
 
     /**
-     * First name of the customer.
+     * Fullname of the customer.
      * Cannot be empty.
      */
-    @NotEmpty(message = "First name cannot be empty")
-    private String firstName;
-
-    /**
-     * Last name of the customer.
-     * Cannot be empty.
-     */
-    @NotEmpty(message = "Last name cannot be empty")
-    private String lastName;
+    @NotEmpty(message = "Fullname cannot be empty")
+    private String fullName;
 
     /**
      * Optional phone number of the customer.
