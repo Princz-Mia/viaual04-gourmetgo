@@ -20,6 +20,8 @@ import java.util.UUID;
 public class PaymentMethod {
 
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.AUTO)
+    @UuidGenerator(style = UuidGenerator.Style.RANDOM)
     private UUID id;
+
+    private String name;
 }
