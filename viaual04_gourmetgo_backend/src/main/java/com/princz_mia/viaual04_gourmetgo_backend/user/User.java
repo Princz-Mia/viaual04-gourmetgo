@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,6 +26,9 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name="\"user\"")
+@SQLDelete(sql = "UPDATE \"user\" SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
@@ -69,5 +74,8 @@ public class User {
      * Flag indicating if the account is currently enabled.
      */
     private boolean isEnabled;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 }
 
