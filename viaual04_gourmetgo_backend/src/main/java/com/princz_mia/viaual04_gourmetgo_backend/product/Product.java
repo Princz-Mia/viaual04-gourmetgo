@@ -1,7 +1,7 @@
 package com.princz_mia.viaual04_gourmetgo_backend.product;
 
 import com.princz_mia.viaual04_gourmetgo_backend.product_category.ProductCategory;
-import com.princz_mia.viaual04_gourmetgo_backend.product_image.ProductImage;
+import com.princz_mia.viaual04_gourmetgo_backend.image.Image;
 import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,7 +9,9 @@ import lombok.Setter;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -27,11 +29,12 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE product SET deleted = true WHERE id = ?")
 public class Product {
 
     /**
      * Unique identifier of the product.
-     * Automatically generated UUID.
+     * Automatically generated using a random UUID strategy.
      */
     @Id
     @UuidGenerator(style = UuidGenerator.Style.RANDOM)
@@ -61,7 +64,7 @@ public class Product {
      * Category to which the product belongs (e.g., "Pizza", "Dessert").
      * Cascade is enabled to propagate changes.
      */
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "product_category_id")
     private ProductCategory category;
 
@@ -78,5 +81,8 @@ public class Product {
      * Automatically removed if the product is deleted.
      */
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProductImage image;
+    private Image image;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 }
