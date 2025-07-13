@@ -1,16 +1,12 @@
 package com.princz_mia.viaual04_gourmetgo_backend.config.security;
 
-import com.princz_mia.viaual04_gourmetgo_backend.admin.IAdminService;
 import com.princz_mia.viaual04_gourmetgo_backend.config.security.jwt.JWTTokenProvider;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.ICustomerService;
 import com.princz_mia.viaual04_gourmetgo_backend.response.ApiResponse;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.IRestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +23,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JWTTokenProvider jwtTokenProvider;
 
-    private final ICustomerService customerService;
-    private final IRestaurantService restaurantService;
-    private final IAdminService adminService;
-
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest request) {
         try {
@@ -45,8 +37,22 @@ public class AuthController {
             LoginResponse loginResponse = new LoginResponse(customUserDetails.getUser().getId(), token);
 
             return ResponseEntity.ok(new ApiResponse("Login Successful", loginResponse));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(e.getMessage(), null));
+        } catch (LockedException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.LOCKED)
+                    .body(new ApiResponse("Your account has been locked.", null));
+        } catch (DisabledException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse("Your account is not verified.", null));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse("Invalid email or password.", null));
+        } catch (AuthenticationException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse("Authentication failed.", null));
         }
     }
 }
