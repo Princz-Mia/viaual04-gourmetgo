@@ -20,6 +20,12 @@ import java.util.UUID;
 public class Address {
 
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.AUTO)
+    @UuidGenerator(style = UuidGenerator.Style.RANDOM)
     private UUID id;
+
+    private String unitNumber;
+    private String addressLine;
+    private String city;
+    private String postalCode;
+    private String region;
 }
