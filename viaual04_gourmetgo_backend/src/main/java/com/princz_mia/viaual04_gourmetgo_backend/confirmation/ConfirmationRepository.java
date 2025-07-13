@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface ConfirmationRepository extends JpaRepository<Confirmation, UUID> {
 
     Confirmation findByKey(String key);
+    Confirmation findByUser_Id(UUID userId);
 }
