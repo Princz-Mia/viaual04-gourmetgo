@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { decodeJwt } from '../utils/jwt';
 import { fetchProfile } from '../api/userService';
 import { toast } from 'react-toastify';
@@ -12,21 +12,17 @@ export const AuthProvider = ({ children }) => {
     });
     const [loading, setLoading] = useState(true);
 
-    // once token+role+id are known, fetch full profile
     useEffect(() => {
         if (!user?.token) {
             setLoading(false);
             return;
         }
 
-        console.log('⏳ fetchProfile tokennel:', user.token);
         fetchProfile()
             .then(profile => {
-                //console.log('✅ profile betöltve:', profile);
                 setUser(profile);
             })
             .catch(err => {
-                //console.error('❌ fetchProfile hiba:', err);
                 toast.error("Error during the loading of personal information")
                 localStorage.removeItem('user');
                 setUser(null);
@@ -58,4 +54,12 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within a AuthProvider');
+    }
+    return context;
 };
