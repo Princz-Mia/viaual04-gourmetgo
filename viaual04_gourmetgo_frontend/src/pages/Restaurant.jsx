@@ -1,103 +1,118 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
+import ProductModal from "../components/ProductModal";
 import ReviewItem from "../components/ReviewItem";
 import ReviewModal from "../components/ReviewModal";
-import ProductModal from "../components/ProductModal";
-
-const mockRestaurant = {
-  id: 1,
-  name: "GourmetGo Bistro",
-  logo: "https://source.unsplash.com/100x100/?bistro,logo",
-  hours: "10:00 AM - 10:00 PM",
-  isOpen: true,
-  products: [
-    {
-      id: 1,
-      name: "Grilled Chicken Sandwich",
-      image: "https://source.unsplash.com/featured/?chicken,sandwich",
-      description: "Tender grilled chicken breast with fresh lettuce, tomato, and aioli on a toasted brioche bun.",
-      price: 8.99,
-      categories: ["Chicken", "Sandwich"],
-    },
-    {
-      id: 2,
-      name: "Classic Cheeseburger",
-      image: "https://source.unsplash.com/featured/?cheeseburger",
-      description: "Juicy beef patty topped with cheddar cheese, pickles, onions, and our special sauce.",
-      price: 9.49,
-      categories: ["Beef", "Burger"],
-    },
-    {
-      id: 3,
-      name: "Caesar Salad",
-      image: "https://source.unsplash.com/featured/?salad",
-      description: "Crisp romaine lettuce tossed with Caesar dressing, croutons, and parmesan cheese.",
-      price: 7.25,
-      categories: ["Salad", "Vegetarian"],
-    },
-    {
-      id: 4,
-      name: "Veggie Wrap",
-      image: "https://source.unsplash.com/featured/?wrap",
-      description: "Grilled seasonal vegetables with hummus and feta cheese wrapped in a spinach tortilla.",
-      price: 7.99,
-      categories: ["Vegetarian", "Wrap"],
-    },
-    {
-      id: 5,
-      name: "Chocolate Lava Cake",
-      image: "https://source.unsplash.com/featured/?chocolate,cake",
-      description: "Warm chocolate cake with a gooey molten center, served with vanilla ice cream.",
-      price: 5.50,
-      categories: ["Dessert", "Chocolate"],
-    },
-  ],
-};
-
-const mockReviews = [
-  { id: 1, user: "Alice", date: "2025-04-01", rating: 5, comment: "Excellent food and service!" },
-  { id: 2, user: "Bob", date: "2025-03-20", rating: 2, comment: "Too salty for my taste." },
-  { id: 3, user: "Carol", date: "2025-04-10", rating: 4, comment: "Great ambiance." },
-];
+import { fetchRestaurant } from "../api/restaurantService";
+import { fetchProductsByRestaurantId } from "../api/productService";
+import { fetchReviewsByRestaurant, canReviewRestaurant, addReview } from "../api/reviewService";
+import { useCart } from "../contexts/CartContext";
+import imageNotFound from "../assets/images/image_not_found.jpg"
+import { getTodayHours, isRestaurantOpenNow } from "../utils/isOpen";
 
 const Restaurant = () => {
-  const { name, logo, hours, isOpen, products } = mockRestaurant;
+  const { restaurantId } = useParams();
+  const [restaurant, setRestaurant] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [canReview, setCanReview] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [view, setView] = useState("products");
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
 
-  const [reviews, setReviews] = useState(mockReviews);
-  const [reviewFilter, setReviewFilter] = useState(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState(null);
+
+  const { addItem } = useCart();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [restData, productData, revs, allowed] = await Promise.all([
+          fetchRestaurant(restaurantId),
+          fetchProductsByRestaurantId(restaurantId),
+          fetchReviewsByRestaurant(restaurantId),
+          canReviewRestaurant(restaurantId)
+        ]);
+        setRestaurant(restData);
+        setProducts(productData);
+        setReviews(revs);
+        setCanReview(allowed);
+      } catch (err) {
+        console.error("Failed to load data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [restaurantId]);
 
   const handleCardClick = (product) => {
     setCurrentProduct(product);
     setProductModalOpen(true);
   };
 
-  const allCategories = [...new Set(products.flatMap(p => p.categories))];
+  const handleAddToCart = (productId) => {
+    addItem(productId, 1);
+  };
+
+  const handleSubmitReview = async ({ rating, comment }) => {
+    try {
+      const newRev = await addReview(restaurantId, rating, comment);
+      setReviews([newRev, ...reviews]);
+    } catch (err) {
+      console.error("Failed to submit review", err);
+    } finally {
+      setReviewModalOpen(false);
+    }
+  };
+
+  // Category filter logic
+  const allCategories = [...new Set(products?.map(p => p.category?.name))];
   const filteredProducts = selectedCategories.length
-    ? products.filter(p => p.categories.some(c => selectedCategories.includes(c)))
+    ? products?.filter(p => selectedCategories.includes(p.category?.name))
     : products;
 
+  // Review filter logic
   const filteredReviews = reviewFilter
-    ? reviews.filter(r => r.rating === reviewFilter)
+    ? reviews.filter(r => r.ratingValue === reviewFilter)
     : reviews;
   const totalReviews = reviews.length;
   const ratingCounts = [5, 4, 3, 2, 1].map(r => ({
     rating: r,
-    count: reviews.filter(rv => rv.rating === r).length
+    count: reviews.filter(rv => rv.ratingValue === r).length
   }));
+
+  if (loading || !restaurant) return <p className="text-center py-8">Loading...</p>;
+
+  const todayInfo = getTodayHours(restaurant.openingHours);
+  const hoursLabel = todayInfo?.label || "Closed Today";
+  const isOpen = isRestaurantOpenNow(restaurant.openingHours);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex flex-col md:flex-row items-center bg-white p-6 rounded-lg shadow mb-6">
-        <img src={logo} alt={`${name} logo`} className="w-24 h-24 rounded-full mr-6 mb-4 md:mb-0" />
+        <img
+          src={
+            restaurant.logo?.downloadUrl
+              ? `http://localhost:8080${restaurant.logo.downloadUrl}`
+              : imageNotFound
+          }
+          alt={`${restaurant.name} logo`}
+          className="w-24 h-24 rounded-full mr-6 mb-4 md:mb-0"
+          onError={(e) => {
+            e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+            e.currentTarget.src = imageNotFound;
+          }}
+        />
         <div>
-          <h1 className="text-4xl font-bold">{name}</h1>
-          <p className="text-gray-600">Hours: {hours}</p>
+          <h1 className="text-4xl font-bold">{restaurant.name}</h1>
+          <p className="text-gray-600">Hours: {hoursLabel}</p>
           <p className={`mt-2 font-semibold ${isOpen ? "text-green-600" : "text-red-600"}`}>
             {isOpen ? "Open Now" : "Closed"}
           </p>
@@ -131,11 +146,13 @@ const Restaurant = () => {
                       type="checkbox"
                       className="checkbox checkbox-primary mr-2"
                       checked={selectedCategories.includes(cat)}
-                      onChange={() => {
+                      onChange={() =>
                         setSelectedCategories(prev =>
-                          prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-                        );
-                      }}
+                          prev.includes(cat)
+                            ? prev.filter(c => c !== cat)
+                            : [...prev, cat]
+                        )
+                      }
                     />
                     <span>{cat}</span>
                   </label>
@@ -181,26 +198,35 @@ const Restaurant = () => {
         <main className="flex-1 space-y-6">
           {view === "products" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map(p => (
+              {filteredProducts?.map(p => (
                 <ProductCard
                   key={p.id}
-                  image={p.image}
+                  image={p.image?.downloadUrl}
                   name={p.name}
                   description={p.description}
                   price={p.price}
-                  onAddToCart={() => { }}
-                  onCardClick={() => { handleCardClick(p) }}
-                  clickable={true}
-
+                  onAddToCart={() => handleAddToCart(p.id)}
+                  onCardClick={() => handleCardClick(p)}
+                  clickable
                 />
               ))}
             </div>
           ) : (
             <>
-              <div className="flex justify-end">
-                <button className="btn btn-primary" onClick={() => setReviewModalOpen(true)}>
-                  Add Review
-                </button>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">Reviews</h2>
+                {canReview ? (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setReviewModalOpen(true)}
+                  >
+                    Add Review
+                  </button>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Only customers who ordered can review.
+                  </p>
+                )}
               </div>
               <div className="space-y-4">
                 {filteredReviews.map(r => (
@@ -213,7 +239,7 @@ const Restaurant = () => {
               <ReviewModal
                 isOpen={reviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
-                onSubmit={rev => setReviews([rev, ...reviews])}
+                onSubmit={handleSubmitReview}
               />
             </>
           )}
