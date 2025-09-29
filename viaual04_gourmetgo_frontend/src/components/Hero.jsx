@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroImage from '../assets/images/hero.webp';
+import heroImage from '../assets/images/hero_img.jpg';
 
 const Hero = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,7 +23,7 @@ const Hero = () => {
       }}
     >
       {/* Optional overlay for better text readability */}
-      <div className="hero-overlay bg-opacity-40"></div>
+      <div className="hero-overlay bg-opacity-40 "></div>
       <div className="hero-content text-left text-neutral-content p-8 sm:p-16 lg:p-32 mb-48">
         <div className="max-w-4xl flex flex-col">
           {/* Marketing text container shifted to the right responsively */}
