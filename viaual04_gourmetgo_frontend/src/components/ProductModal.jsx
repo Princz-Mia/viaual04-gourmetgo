@@ -1,4 +1,5 @@
 import React from "react";
+import imageNotFound from "../assets/images/image_not_found.jpg"
 
 const ProductModal = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
@@ -15,9 +16,17 @@ const ProductModal = ({ isOpen, onClose, product }) => {
         </button>
 
         <img
-          src={image}
+          src={
+            image
+              ? `http://localhost:8080${image}`
+              : imageNotFound
+          }
           alt={name}
           className="w-full h-64 object-cover rounded-t-lg"
+          onError={(e) => {
+            e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+            e.currentTarget.src = imageNotFound;
+          }}
         />
 
         <div className="p-6">
