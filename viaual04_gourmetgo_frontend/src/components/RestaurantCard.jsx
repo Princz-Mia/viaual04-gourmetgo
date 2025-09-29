@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+import imageNotFound from "../assets/images/image_not_found.jpg"
+
 const RestaurantCard = ({
+    id,
     image,
     name,
     hours,
@@ -7,18 +11,38 @@ const RestaurantCard = ({
     categories,
     isOpen,
 }) => {
+    const navigate = useNavigate();
+
     const mainCategory = categories && categories.length > 0 ? categories[0] : "N/A";
-    const deliveryInfo = deliveryFee.toFixed(2) == 0.00 ? "Free Delivery" : `Delivery Fee: $${deliveryFee.toFixed(2)}`;
+    const deliveryInfo =
+        deliveryFee.toFixed(2) === "0.00"
+            ? "Free Delivery"
+            : `Delivery Fee: $${deliveryFee.toFixed(2)}`;
+
+    const handleClick = () => {
+        if (isOpen) {
+            navigate(`/restaurant/${id}`);
+        }
+    };
 
     return (
         <div
+            onClick={handleClick}
             className={`card bg-white opacity-80 shadow-xl max-w-[350px] transform transition-transform duration-300 ${isOpen
                 ? "cursor-pointer hover:opacity-100"
                 : "opacity-25 pointer-events-none"
                 }`}
         >
             <figure>
-                <img src={image} alt={name} className="w-full h-48 object-cover" />
+                <img src={
+                    image
+                        ? `http://localhost:8080${image}`
+                        : imageNotFound
+                } alt={name} className="w-full h-48 object-cover"
+                    onError={(e) => {
+                        e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+                        e.currentTarget.src = imageNotFound;
+                    }} />
             </figure>
             <div className="p-4">
                 <h3 className="text-xl font-bold mb-1">{name}</h3>
