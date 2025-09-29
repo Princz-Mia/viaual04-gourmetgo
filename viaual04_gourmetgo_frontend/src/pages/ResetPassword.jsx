@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { resetPassword } from '../api/userService';
 
 // Validation schema: password and confirm must match
 const schema = yup.object().shape({
@@ -17,26 +18,32 @@ const schema = yup.object().shape({
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const key = searchParams.get('key');
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm({ resolver: yupResolver(schema) });
 
   useEffect(() => {
-    if (!token) {
-      toast.error('Password reset token is missing');
+    if (!key) {
+      toast.error('Password reset key is missing in URL');
       navigate('/forgot-password');
     }
-  }, [token, navigate]);
+  }, [key, navigate]);
 
   const onSubmit = async (data) => {
+    if (!key) {
+      toast.error('Password reset key is missing');
+      return;
+    }
+
     try {
-      //await resetPassword({ token, newPassword: data.password });
-      toast.success('Password has been reset. Please log in with your new password.');
-      navigate('/login');
+      const res = await resetPassword(key, data);
+      if (res !== null) {
+        toast.success('Password has been reset. Please log in with your new password.');
+        navigate('/login');
+      }
     } catch (err) {
-      console.error(err);
       toast.error(
         err.response?.data?.message || 'Failed to reset password, please try again.'
       );
