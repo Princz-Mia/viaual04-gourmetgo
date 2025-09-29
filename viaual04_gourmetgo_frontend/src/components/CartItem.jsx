@@ -1,4 +1,5 @@
 import React from "react";
+import imageNotFound from "../assets/images/image_not_found.jpg"
 
 const CartItem = ({
     image,
@@ -27,9 +28,17 @@ const CartItem = ({
         <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4">
             {/* Product Image */}
             <img
-                src={image}
+                src={
+                    image
+                        ? `http://localhost:8080${image}`
+                        : imageNotFound
+                }
                 alt={name}
                 className="w-24 h-24 object-cover rounded flex-shrink-0"
+                onError={(e) => {
+                    e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+                    e.currentTarget.src = imageNotFound;
+                }}
             />
 
             {/* Name and Quantity Controls */}
