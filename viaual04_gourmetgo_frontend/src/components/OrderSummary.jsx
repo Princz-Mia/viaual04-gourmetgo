@@ -1,14 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import {
+    OrderStatuses,
+    StatusLabels,
+    StatusClasses
+} from '../utils/statusUtils';
 
 export default function OrderSummary({ order }) {
     const { id, restaurant, orderDate, totalAmount, status } = order;
-    const statusClass = {
-        Delivered: "badge badge-success text-right w-24",
-        "In Progress": "badge badge-warning text-right w-24",
-        Cancelled: "badge badge-error text-right w-24",
-        Pending: "badge badge-info text-right w-24",
-    }[status] || "badge badge-neutral text-right w-24";
 
     return (
         <Link to={`/orders/${id}`}>
@@ -18,7 +17,7 @@ export default function OrderSummary({ order }) {
                         Order ID: <span className="font-mono">{id}</span>
                     </p>
                     <h3 className="text-lg font-semibold text-gray-800">
-                        {restaurant}
+                        {restaurant.name}
                     </h3>
                 </div>
                 <div className="text-gray-600 w-32 text-center">
@@ -31,7 +30,9 @@ export default function OrderSummary({ order }) {
                     <p className="text-sm">Total</p>
                     <p className="font-medium">${totalAmount.toFixed(2)}</p>
                 </div>
-                <span className={statusClass}>{status}</span>
+                <span className={StatusClasses[status]}>
+                    {StatusLabels[status]}
+                </span>
             </div>
         </Link>
     );
