@@ -1,4 +1,4 @@
-const ReviewItem = ({ user, date, rating, comment }) => {
+const ReviewItem = ({ customer, createdAt, ratingValue, comment }) => {
     return (
         <div className="bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row sm:items-start gap-4">
             {/* Star rating */}
@@ -7,7 +7,7 @@ const ReviewItem = ({ user, date, rating, comment }) => {
                     <svg
                         key={i}
                         xmlns="http://www.w3.org/2000/svg"
-                        className={`w-5 h-5 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        className={`w-5 h-5 ${i < ratingValue ? 'text-yellow-400' : 'text-gray-300'}`}
                         viewBox="0 0 20 20"
                         fill="currentColor"
                     >
@@ -22,8 +22,8 @@ const ReviewItem = ({ user, date, rating, comment }) => {
             </div>
             <div className="flex-1">
                 <div className="flex justify-between items-center">
-                    <p className="font-semibold text-gray-800">{user}</p>
-                    <p className="text-sm text-gray-500">{new Date(date).toLocaleDateString()}</p>
+                    <p className="font-semibold text-gray-800">{customer.fullName}</p>
+                    <p className="text-sm text-gray-500">{new Date(createdAt).toLocaleDateString()}</p>
                 </div>
                 {comment && <p className="mt-2 text-gray-700">{comment}</p>}
             </div>
