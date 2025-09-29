@@ -8,10 +8,10 @@ const Footer = () => {
           © {new Date().getFullYear()} GourmetGo. All rights reserved.
         </p>
         <div className="flex space-x-4 mt-4 sm:mt-0">
-          <Link to="/privacy" className="text-sm hover:underline">
+          <Link to="/privacy-policy" className="text-sm hover:underline">
             Privacy Policy
           </Link>
-          <Link to="/terms" className="text-sm hover:underline">
+          <Link to="/terms-of-service" className="text-sm hover:underline">
             Terms of Service
           </Link>
           <Link to="/contact" className="text-sm hover:underline">
