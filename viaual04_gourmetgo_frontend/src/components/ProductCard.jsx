@@ -1,4 +1,5 @@
 import React from "react";
+import imageNotFound from "../assets/images/image_not_found.jpg"
 
 const ProductCard = ({
   image,
@@ -28,9 +29,17 @@ const ProductCard = ({
     >
       <div className="sm:w-1/3 w-full h-48 sm:h-auto flex-shrink-0">
         <img
-          src={image}
+          src={
+            image
+              ? `http://localhost:8080${image}`
+              : imageNotFound
+          }
           alt={name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+            e.currentTarget.src = imageNotFound;
+          }}
         />
       </div>
 
