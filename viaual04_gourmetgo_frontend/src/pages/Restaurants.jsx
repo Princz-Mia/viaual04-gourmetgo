@@ -1,67 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RestaurantCard from "../components/RestaurantCard";
-
-const mockRestaurants = [
-    {
-        id: 1,
-        name: "La Bella Italia",
-        image: "https://source.unsplash.com/featured/?italian,restaurant",
-        hours: "11:00 - 23:00",
-        rating: 4.5,
-        categories: ["Italian", "Pasta", "Mediterranean"],
-        isOpen: true,
-        deliveryFee: 7.20,
-        popularity: 200,
-    },
-    {
-        id: 2,
-        name: "Dragon Express",
-        image: "https://source.unsplash.com/featured/?chinese,restaurant",
-        hours: "10:00 - 22:00",
-        rating: 4.2,
-        categories: ["Chinese", "Asian", "Noodles"],
-        isOpen: false,
-        deliveryFee: 0,
-        popularity: 150,
-    },
-    {
-        id: 3,
-        name: "Spice Route",
-        image: "https://source.unsplash.com/featured/?indian,restaurant",
-        hours: "09:00 - 21:00",
-        rating: 4.8,
-        categories: ["Indian", "Curry", "Vegan"],
-        isOpen: true,
-        deliveryFee: 3.70,
-        popularity: 250,
-    },
-    {
-        id: 4,
-        name: "Taco Fiesta",
-        image: "https://source.unsplash.com/featured/?mexican,restaurant",
-        hours: "12:00 - 00:00",
-        rating: 4.0,
-        categories: ["Mexican", "Hamburger", "American"],
-        isOpen: true,
-        deliveryFee: 0,
-        popularity: 180,
-    },
-    {
-        id: 5,
-        name: "Green Leaf",
-        image: "https://source.unsplash.com/featured/?vegan,restaurant",
-        hours: "10:00 - 20:00",
-        rating: 4.6,
-        categories: ["Vegan", "Healthy", "Organic"],
-        isOpen: true,
-        deliveryFee: 2.50,
-        popularity: 220,
-    },
-    // További mock éttermek hozzáadhatók...
-];
+import { fetchRestaurants } from "../api/restaurantService";
+import { getTodayHours, isRestaurantOpenNow } from "../utils/isOpen";
+import { toast } from "react-toastify";
+import imageNotFound from '../assets/images/image_not_found.jpg';
+import { useLocation } from "react-router-dom";
 
 const Restaurants = () => {
-    // Állapotok a kereséshez, szűréshez és rendezéshez
+    const [restaurants, setRestaurants] = useState([]);
+    const [loading, setLoading] = useState(true);
+
     const [search, setSearch] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [openFilter, setOpenFilter] = useState(false);
@@ -69,12 +17,34 @@ const Restaurants = () => {
     const [sortOption, setSortOption] = useState("Most Popular");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
 
-    // Összegyűjtjük az összes elérhető kategóriát a mock adatokból.
+    const location = useLocation();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const searchParam = params.get("name");
+        if (searchParam) {
+            setSearch(searchParam);
+        }
+    }, [location.search]);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await fetchRestaurants();
+                setRestaurants(data);
+            } catch (err) {
+                toast.error("Failed to fetch restaurants", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
     const allCategories = [
-        ...new Set(mockRestaurants.flatMap((r) => r.categories)),
+        ...new Set(restaurants.flatMap((r) => r.categories.map(c => c.name))),
     ];
 
-    // Kategória kiválasztásának kezelése.
     const toggleCategory = (category) => {
         if (selectedCategories.includes(category)) {
             setSelectedCategories(selectedCategories.filter((c) => c !== category));
@@ -83,36 +53,32 @@ const Restaurants = () => {
         }
     };
 
-    // Szűrés és rendezés logikája.
     const filterRestaurants = () => {
-        let filtered = [...mockRestaurants];
+        let filtered = [...restaurants];
 
-        // Keresés étterem név alapján (kis- és nagybetű érzéketlen).
         if (search.trim() !== "") {
             filtered = filtered.filter((r) =>
                 r.name.toLowerCase().includes(search.toLowerCase())
             );
         }
 
-        // Konyhatípusok szerinti szűrés: ha van legalább egy kiválasztott kategória,
-        // akkor az étteremnek tartalmaznia kell legalább egyet.
         if (selectedCategories.length > 0) {
+            filtered = filtered.filter((r) => {
+                const names = r.categories.map(c => c.name);
+                return selectedCategories.some(cat => names.includes(cat));
+            });
+        }
+
+        if (openFilter) {
             filtered = filtered.filter((r) =>
-                selectedCategories.some((cat) => r.categories.includes(cat))
+                isRestaurantOpenNow(r.openingHours)
             );
         }
 
-        // Nyitva van-e szűrés.
-        if (openFilter) {
-            filtered = filtered.filter((r) => r.isOpen === true);
-        }
-
-        // Ingyenes kiszállítás szűrés.
         if (freeDeliveryFilter) {
-            filtered = filtered.filter((r) => r.deliveryFee.toFixed(2) == 0.00);
+            filtered = filtered.filter((r) => r.deliveryFee === null || r.deliveryFee?.toFixed(2) == 0.00);
         }
 
-        // Rendezés a választott opció alapján.
         if (sortOption === "Most Popular") {
             filtered.sort((a, b) => b.popularity - a.popularity);
         } else if (sortOption === "Best Rated") {
@@ -126,11 +92,9 @@ const Restaurants = () => {
 
     const filteredRestaurants = filterRestaurants();
 
-    // Szűrőpanel JSX, amelyet asztali sidebarban és mobil modalban használunk.
     const filterPanel = (
         <div className="bg-white p-6 space-y-4">
             <h2 className="text-xl font-semibold">Filters</h2>
-            {/* Elérhetőség: Nyitva és ingyenes kiszállítás */}
             <div className="flex flex-col gap-2">
                 <label className="flex items-center">
                     <input
@@ -151,7 +115,6 @@ const Restaurants = () => {
                     <span>Free Delivery</span>
                 </label>
             </div>
-            {/* Konyhatípusok (többszörös kiválasztás) */}
             <div>
                 <label className="block font-medium mb-1">Cuisine Types:</label>
                 <div className="grid grid-cols-2 gap-4">
@@ -171,18 +134,18 @@ const Restaurants = () => {
         </div>
     );
 
+    if (loading) return <p className="text-center">Loading restaurants...</p>;
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Restaurants</h1>
 
             <div className="flex flex-col md:flex-row gap-6">
-                {/* Asztali nézetben a bal oldali szűrőpanel */}
                 <div className="hidden md:block md:w-1/4">
                     <div className="card bg-base-100 shadow-xl">{filterPanel}</div>
                 </div>
 
                 <div className="flex-1">
-                    {/* Kereső és rendezési opciók */}
                     <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
                         <input
                             type="text"
@@ -200,7 +163,6 @@ const Restaurants = () => {
                             <option value="Best Rated">Best Rated</option>
                             <option value="Alphabetical">Alphabetical</option>
                         </select>
-                        {/* Mobil nézetben szűrés gomb */}
                         <button
                             className="btn btn-primary block sm:hidden"
                             onClick={() => setFilterModalOpen(true)}
@@ -209,25 +171,29 @@ const Restaurants = () => {
                         </button>
                     </div>
 
-                    {/* Étterem kártyák rácsos elrendezése – kissé szorosabban */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredRestaurants.map((restaurant) => (
-                            <RestaurantCard
-                                key={restaurant.id}
-                                image={restaurant.image}
-                                name={restaurant.name}
-                                hours={restaurant.hours}
-                                rating={restaurant.rating}
-                                deliveryFee={restaurant.deliveryFee}
-                                categories={restaurant.categories}
-                                isOpen={restaurant.isOpen}
-                            />
-                        ))}
+                        {filteredRestaurants.map((restaurant) => {
+                            const todayInfo = getTodayHours(restaurant.openingHours);
+                            const isOpen = isRestaurantOpenNow(restaurant.openingHours);
+
+                            return (
+                                <RestaurantCard
+                                    key={restaurant.id}
+                                    id={restaurant.id}
+                                    image={restaurant.logo?.downloadUrl}
+                                    name={restaurant.name}
+                                    hours={todayInfo?.label || "Closed today"}
+                                    rating={restaurant.rating || 0}
+                                    deliveryFee={parseFloat(restaurant.deliveryFee || 0.00)}
+                                    categories={restaurant.categories.map(c => c.name)}
+                                    isOpen={isOpen}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
-            {/* Mobil szűrő modal */}
             {filterModalOpen && (
                 <div className="modal modal-open">
                     <div className="modal-box">
