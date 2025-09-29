@@ -2,21 +2,26 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiShoppingCart } from "react-icons/fi";
 import { AuthContext } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext";
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
+  const { items } = useCart();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
   const dropdownRef = useRef();
 
-  // Load cart count from localStorage
-  useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.length);
-  }, []);
+  const isAdmin = user?.role.authority === 'ROLE_ADMIN';
+  const isRestaurant = user?.role.authority === 'ROLE_RESTAURANT';
+  const isCustomer = user?.role.authority === 'ROLE_CUSTOMER';
 
-  // Close dropdown on outside click
+  useEffect(() => {
+    if (isCustomer) {
+      setCartCount(items.length);
+    }
+  }, [items]);
+
   useEffect(() => {
     const onClick = e => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -32,9 +37,8 @@ const Header = () => {
     navigate('/login');
   };
 
-  // Determine display name and initial
   const displayName = user
-    ? user.role === 'ROLE_RESTAURANT'
+    ? isRestaurant
       ? user.name
       : user.fullName
     : '';
@@ -49,15 +53,21 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/cart')}
-            className="relative btn btn-ghost btn-circle"
-          >
-            <FiShoppingCart className="w-6 h-6 text-gray-800" />
-            {cartCount > 0 && (
-              <span className="badge badge-sm badge-primary indicator-item">{cartCount}</span>
-            )}
-          </button>
+          {user && isCustomer && (
+            <button
+              onClick={() => navigate('/cart')}
+              className="btn btn-ghost btn-circle p-0"  // p-0, hogy ne legyen plusz padding
+            >
+              <div className="indicator">
+                <FiShoppingCart className="w-6 h-6 text-gray-800" />
+                {cartCount > 0 && (
+                  <span className="indicator-item badge badge-xs badge-primary">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+            </button>
+          )}
 
           {user ? (
             <div className="relative" ref={dropdownRef}>
@@ -74,26 +84,21 @@ const Header = () => {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                   <Link
-                    to="/profile"
+                    to={isRestaurant ? `/restaurant/${user.id}/management` : "/profile"}
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    Profile
+                    {isRestaurant ? "Management Page" : "Profile"}
                   </Link>
+
                   <Link
-                    to="/orders"
+                    to={isAdmin ? "/company-management" : "/orders"}
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    Orders
+                    {isAdmin ? "Management Page" : "Orders"}
                   </Link>
-                  <Link
-                    to="/messages"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    Messages
-                  </Link>
+
                   <button
                     onClick={handleSignOut}
                     className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -106,7 +111,7 @@ const Header = () => {
           ) : (
             <div className="flex space-x-4">
               <Link to="/login" className="text-gray-800 hover:text-gray-600">Login</Link>
-              <Link to="/register" className="text-gray-800 hover:text-gray-600">Register</Link>
+              <Link to="/registration" className="text-gray-800 hover:text-gray-600">Register</Link>
             </div>
           )}
         </div>
