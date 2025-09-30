@@ -33,7 +33,6 @@ export default function Login() {
       }
     } catch (error) {
       toast.error('An error occurred during login!');
-      console.error('Login error', error);
     } finally {
       setLoading(false);
     }
