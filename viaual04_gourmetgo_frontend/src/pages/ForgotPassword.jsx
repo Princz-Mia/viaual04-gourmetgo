@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import { requestPasswordReset } from '../api/userService';
 
 // Validation schema for forgot password form
 const schema = yup.object().shape({
@@ -21,10 +22,12 @@ export default function ForgotPassword() {
 
   const onSubmit = async (data) => {
     try {
-      //await requestPasswordReset(data.email);
-      toast.success('Password reset email sent. Please check your inbox.');
+      const res = await requestPasswordReset(data.email);
+      if (res !== null) {
+        toast.success('Password reset email sent. Please check your inbox.');
+      }
     } catch (err) {
-      console.error(err);
+      console.log(err.message);
       toast.error('Failed to send reset email. Please try again later.');
     }
   };
