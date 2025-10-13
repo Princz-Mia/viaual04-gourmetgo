@@ -1,7 +1,9 @@
 package com.princz_mia.viaual04_gourmetgo_backend.config.security;
 
 import com.princz_mia.viaual04_gourmetgo_backend.config.security.jwt.JWTTokenProvider;
-import com.princz_mia.viaual04_gourmetgo_backend.response.ApiResponse;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.ApiResponse;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.LoginRequest;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.LoginResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
