@@ -1,22 +1,25 @@
 package com.princz_mia.viaual04_gourmetgo_backend.exception;
 
-import org.springframework.http.HttpStatus;
-
 public class AppException extends RuntimeException {
 
-    private final HttpStatus httpStatus;
+    private final ErrorType errorType;
 
-    public AppException(String message, HttpStatus httpStatus) {
+    public AppException(String message, ErrorType errorType) {
         super(message);
-        this.httpStatus = httpStatus;
+        this.errorType = errorType;
     }
 
-    public AppException() {
-        super("An error occurred.");
-        this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    public AppException(String message, ErrorType errorType, Throwable cause) {
+        super(message, cause);
+        this.errorType = errorType;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
+    public AppException(String message) {
+        super(message);
+        this.errorType = ErrorType.INTERNAL_SERVER_ERROR;
+    }
+
+    public ErrorType getErrorType() {
+        return errorType;
     }
 }
