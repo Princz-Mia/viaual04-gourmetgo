@@ -31,3 +31,14 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Logs ###
+logs/*.log
+logs/*.log.*
+!logs/.gitkeep
+
+### Configuration Files with Secrets ###
+src/main/resources/application.properties
+src/main/resources/application-dev.yml
+src/main/resources/application-prod.yml
+.env

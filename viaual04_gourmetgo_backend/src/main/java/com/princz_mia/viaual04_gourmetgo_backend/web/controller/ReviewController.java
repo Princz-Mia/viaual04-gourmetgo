@@ -1,11 +1,15 @@
-package com.princz_mia.viaual04_gourmetgo_backend.review;
+package com.princz_mia.viaual04_gourmetgo_backend.web.controller;
 
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.ICustomerService;
-import com.princz_mia.viaual04_gourmetgo_backend.response.ApiResponse;
+import com.princz_mia.viaual04_gourmetgo_backend.business.service.ICustomerService;
+import com.princz_mia.viaual04_gourmetgo_backend.business.service.IReviewService;
+import com.princz_mia.viaual04_gourmetgo_backend.config.logging.LoggingUtils;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.ApiResponse;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.ReviewDto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("${api.prefix}/reviews")
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewController {
 
     private final IReviewService reviewService;
@@ -22,7 +27,9 @@ public class ReviewController {
 
     @GetMapping("/by-restaurant/{restaurantId}")
     public ResponseEntity<ApiResponse> getByRestaurant(@PathVariable UUID restaurantId) {
+        LoggingUtils.logMethodEntry(log, "getByRestaurant", "restaurantId", restaurantId);
         List<ReviewDto> reviews = reviewService.getReviewsForRestaurant(restaurantId);
+        LoggingUtils.logBusinessEvent(log, "REVIEWS_RETRIEVED", "restaurantId", restaurantId, "count", reviews.size());
         return ResponseEntity.ok(new ApiResponse("Success", reviews));
     }
 
@@ -32,8 +39,10 @@ public class ReviewController {
             @RequestParam @Min(1) @Max(5) Integer rating,
             @RequestParam(required = false) String comment
     ) {
+        LoggingUtils.logMethodEntry(log, "addReview", "restaurantId", restaurantId, "rating", rating);
         Customer customer = customerService.getAuthenticatedCustomer();
         ReviewDto dto = reviewService.addReview(customer.getId(), restaurantId, rating, comment);
+        LoggingUtils.logBusinessEvent(log, "REVIEW_ADDED", "reviewId", dto.getId(), "customerId", customer.getId(), "restaurantId", restaurantId, "rating", rating);
         return ResponseEntity.ok(new ApiResponse("Review added", dto));
     }
 }
