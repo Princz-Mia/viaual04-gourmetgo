@@ -17,6 +17,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.2] - 2025-11-01
+### Backend
+#### Added
+- Implement logging strategy using **SLF4J** with **Logback** for improved observability and production monitoring.
+- Structured logging with **correlation IDs** included in log entries.
+- Profile-specific configurations:
+  - `logback-spring.xml` with dev/prod profiles.
+  - `application-dev.yml` and `application-prod.yml` for environment-specific settings.
+
+#### Changed
+- Updated `application.properties` to support logging properties and correlation ID propagation.
+- Updated `.gitignore` to exclude sensitive or environment-specific configuration files.
+
+### Frontend
+- _No changes._
+
+> Notes:
+> - **External behavior:** No API/contract changes; no error payload or status code changes.
+> - **Operations:** No migrations required (config/DB/env). Logs available in console and `logs/gourmetgo.log` depending on profile.
+
+---
+
 ## [0.1.1] - 2025-10-13
 ### Backend
 #### Changed
