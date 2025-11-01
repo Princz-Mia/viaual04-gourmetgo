@@ -1,5 +1,6 @@
-package com.princz_mia.viaual04_gourmetgo_backend.image;
+package com.princz_mia.viaual04_gourmetgo_backend.data.repository;
 
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

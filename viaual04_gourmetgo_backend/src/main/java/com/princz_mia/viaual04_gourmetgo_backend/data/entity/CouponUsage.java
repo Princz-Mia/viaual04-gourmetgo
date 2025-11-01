@@ -1,7 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.coupon_usage;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.coupon.Coupon;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Coupon;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

@@ -1,7 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.order_item;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.product.Product;
-import com.princz_mia.viaual04_gourmetgo_backend.order.Order;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Product;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Order;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;

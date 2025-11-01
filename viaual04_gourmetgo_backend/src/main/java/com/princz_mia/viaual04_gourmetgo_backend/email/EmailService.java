@@ -1,11 +1,11 @@
 package com.princz_mia.viaual04_gourmetgo_backend.email;
 
-import com.princz_mia.viaual04_gourmetgo_backend.coupon.Coupon;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Coupon;
 import com.princz_mia.viaual04_gourmetgo_backend.exception.AppException;
+import com.princz_mia.viaual04_gourmetgo_backend.exception.ErrorType;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -40,7 +40,7 @@ public class EmailService {
             message.setText(getEmailMessage(name, host, key));
             sender.send(message);
         } catch (Exception e) {
-            throw new AppException("Unable to send email, cause: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new AppException("Unable to send email, cause: " + e.getMessage(), ErrorType.EXTERNAL_SERVICE_ERROR);
         }
     }
 
@@ -54,7 +54,7 @@ public class EmailService {
             message.setText(getResetPasswordMessage(name, host, token));
             sender.send(message);
         } catch (Exception e) {
-            throw new AppException("Unable to send email, cause: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new AppException("Unable to send email, cause: " + e.getMessage(), ErrorType.EXTERNAL_SERVICE_ERROR);
         }
     }
 
@@ -68,7 +68,7 @@ public class EmailService {
             message.setText(getRestaurantRegistrationEmailMessage(ownerName, host));
             sender.send(message);
         } catch (Exception e) {
-            throw new AppException("Unable to send email, cause: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new AppException("Unable to send email, cause: " + e.getMessage(), ErrorType.EXTERNAL_SERVICE_ERROR);
         }
     }
 
@@ -82,7 +82,7 @@ public class EmailService {
             message.setText(getCouponPublishedMessage(name, coupon));
             sender.send(message);
         } catch (Exception e) {
-            throw new AppException("Unable to send email, cause: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new AppException("Unable to send email, cause: " + e.getMessage(), ErrorType.EXTERNAL_SERVICE_ERROR);
         }
     }
 
@@ -96,7 +96,7 @@ public class EmailService {
             message.setText(getRestaurantApprovedMessage(ownerName, host, key));
             sender.send(message);
         } catch (Exception e) {
-            throw new AppException("Unable to send email, cause: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new AppException("Unable to send email, cause: " + e.getMessage(), ErrorType.EXTERNAL_SERVICE_ERROR);
         }
     }
 }

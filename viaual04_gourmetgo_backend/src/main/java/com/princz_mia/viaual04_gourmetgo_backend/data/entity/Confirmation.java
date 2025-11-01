@@ -1,7 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.confirmation;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
 import com.fasterxml.jackson.annotation.*;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;

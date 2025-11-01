@@ -1,6 +1,6 @@
 package com.princz_mia.viaual04_gourmetgo_backend.events;
 
-import com.princz_mia.viaual04_gourmetgo_backend.coupon.Coupon;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Coupon;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

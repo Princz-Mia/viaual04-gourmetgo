@@ -1,4 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.cart_item;
+package com.princz_mia.viaual04_gourmetgo_backend.business.service;
+
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.CartItem;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.CartItemDto;
 
 import java.util.UUID;
 

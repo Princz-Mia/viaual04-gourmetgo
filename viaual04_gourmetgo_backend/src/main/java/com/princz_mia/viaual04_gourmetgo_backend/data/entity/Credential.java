@@ -1,10 +1,10 @@
-package com.princz_mia.viaual04_gourmetgo_backend.credential;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

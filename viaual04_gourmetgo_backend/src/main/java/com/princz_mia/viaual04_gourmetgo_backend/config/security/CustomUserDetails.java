@@ -1,10 +1,10 @@
 package com.princz_mia.viaual04_gourmetgo_backend.config.security;
 
-import com.princz_mia.viaual04_gourmetgo_backend.admin.Admin;
-import com.princz_mia.viaual04_gourmetgo_backend.credential.Credential;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Admin;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Credential;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

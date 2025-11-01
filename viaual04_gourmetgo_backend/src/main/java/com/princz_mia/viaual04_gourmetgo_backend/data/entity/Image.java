@@ -1,7 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.image;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.product.Product;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Image;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;

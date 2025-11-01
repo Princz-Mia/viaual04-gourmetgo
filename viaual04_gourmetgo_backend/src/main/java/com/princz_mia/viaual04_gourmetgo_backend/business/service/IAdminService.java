@@ -1,4 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.admin;
+package com.princz_mia.viaual04_gourmetgo_backend.business.service;
+
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Admin;
+import com.princz_mia.viaual04_gourmetgo_backend.web.dto.AdminDto;
 
 import java.util.UUID;
 

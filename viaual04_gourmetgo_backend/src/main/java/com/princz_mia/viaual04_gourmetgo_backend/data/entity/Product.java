@@ -1,8 +1,8 @@
-package com.princz_mia.viaual04_gourmetgo_backend.product;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.product_category.ProductCategory;
-import com.princz_mia.viaual04_gourmetgo_backend.image.Image;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.ProductCategory;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Image;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

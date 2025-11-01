@@ -1,5 +1,6 @@
-package com.princz_mia.viaual04_gourmetgo_backend.user;
+package com.princz_mia.viaual04_gourmetgo_backend.data.repository;
 
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;

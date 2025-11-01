@@ -1,10 +1,10 @@
 package com.princz_mia.viaual04_gourmetgo_backend.events;
 
-import com.princz_mia.viaual04_gourmetgo_backend.admin.Admin;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Admin;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
 import com.princz_mia.viaual04_gourmetgo_backend.email.EmailService;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
-package com.princz_mia.viaual04_gourmetgo_backend.customer;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.cart.Cart;
-import com.princz_mia.viaual04_gourmetgo_backend.order.Order;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Cart;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Order;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.persistence.*;
 import lombok.*;

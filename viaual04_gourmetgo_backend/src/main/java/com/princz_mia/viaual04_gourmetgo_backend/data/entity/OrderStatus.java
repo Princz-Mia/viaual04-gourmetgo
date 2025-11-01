@@ -1,4 +1,4 @@
-package com.princz_mia.viaual04_gourmetgo_backend.order_status;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
 /**
  * Enum representing the various statuses an order can have

@@ -1,9 +1,9 @@
 package com.princz_mia.viaual04_gourmetgo_backend.config.security;
 
-import com.princz_mia.viaual04_gourmetgo_backend.credential.Credential;
-import com.princz_mia.viaual04_gourmetgo_backend.credential.CredentialRepository;
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
-import com.princz_mia.viaual04_gourmetgo_backend.user.UserRepository;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Credential;
+import com.princz_mia.viaual04_gourmetgo_backend.data.repository.CredentialRepository;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

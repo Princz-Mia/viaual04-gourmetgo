@@ -1,6 +1,6 @@
 package com.princz_mia.viaual04_gourmetgo_backend.events;
 
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

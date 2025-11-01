@@ -1,6 +1,6 @@
 package com.princz_mia.viaual04_gourmetgo_backend.email;
 
-import com.princz_mia.viaual04_gourmetgo_backend.coupon.Coupon;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Coupon;
 
 public class EmailUtils {
 

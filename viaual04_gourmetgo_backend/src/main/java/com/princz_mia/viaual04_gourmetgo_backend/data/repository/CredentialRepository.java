@@ -1,6 +1,7 @@
-package com.princz_mia.viaual04_gourmetgo_backend.credential;
+package com.princz_mia.viaual04_gourmetgo_backend.data.repository;
 
-import com.princz_mia.viaual04_gourmetgo_backend.user.User;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Credential;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

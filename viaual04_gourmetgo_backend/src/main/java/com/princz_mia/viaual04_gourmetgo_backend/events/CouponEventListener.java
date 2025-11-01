@@ -1,7 +1,7 @@
 package com.princz_mia.viaual04_gourmetgo_backend.events;
 
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
-import com.princz_mia.viaual04_gourmetgo_backend.customer.ICustomerService;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.business.service.ICustomerService;
 import com.princz_mia.viaual04_gourmetgo_backend.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

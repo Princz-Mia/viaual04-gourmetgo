@@ -1,4 +1,4 @@
-package com.princz_mia.viaual04_gourmetgo_backend.coupon;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

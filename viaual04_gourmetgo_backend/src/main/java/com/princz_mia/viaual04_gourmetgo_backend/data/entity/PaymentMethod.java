@@ -1,4 +1,4 @@
-package com.princz_mia.viaual04_gourmetgo_backend.payment_method;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

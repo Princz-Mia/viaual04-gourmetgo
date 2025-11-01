@@ -1,8 +1,8 @@
-package com.princz_mia.viaual04_gourmetgo_backend.review;
+package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
-import com.princz_mia.viaual04_gourmetgo_backend.customer.Customer;
-import com.princz_mia.viaual04_gourmetgo_backend.product.Product;
-import com.princz_mia.viaual04_gourmetgo_backend.restaurant.Restaurant;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Product;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
