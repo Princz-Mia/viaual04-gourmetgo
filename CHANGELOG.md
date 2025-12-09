@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Built `HappyHourRepository` for promotion data access and queries.
   - Implemented event-driven architecture with `HappyHourEvent` and `HappyHourEventListener`.
   - Added `PromotionController` with REST endpoints for promotion management.
+- **Feature (analytics):** implement comprehensive dashboard statistics with charts, real-time data, and business insights.
+  - Added `VisitStatistics` entity for tracking user interactions and platform metrics.
+  - Created `IStatisticsService` interface and `StatisticsService` implementation for analytics business logic.
+  - Built `VisitStatisticsRepository` for data aggregation and statistical queries.
+  - Implemented event-driven analytics with `StatisticsEvent` for real-time data collection.
+  - Added `StatisticsController` with REST endpoints for dashboard data retrieval.
+  - Created DTOs: `AdminDashboardDto`, `RestaurantDashboardDto` for structured analytics responses.
 
 ### Frontend
 #### Added
@@ -37,11 +44,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Built UI components: `HappyHourBanner` for promotion display, `HappyHourModal` for details.
   - Integrated real-time promotion notifications and customer alerts.
   - Added responsive design for mobile and desktop promotion viewing.
+- **Feature (analytics):** implement dashboard statistics UI components and analytics pages.
+  - Created `statisticsService.js` for API communication with analytics endpoints.
+  - Built reusable chart components: `LineChart`, `PieChart`, `StatCard` for data visualization.
+  - Implemented dashboard components: `DashboardHeader`, `DateRangePicker`, `RealTimeStats`.
+  - Added admin management components: `CompensationRewardModal`, `PromotionManagement`, `PromotionRewardModal`.
+  - Created comprehensive dashboard pages: `AdminDashboard`, `RestaurantDashboard`, `BusinessInsights`.
+  - Built specialized analytics pages: `UserAnalytics`, `RestaurantCustomerAnalytics`, `RestaurantMenuAnalytics`.
 
 > Notes:
-> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`.
-> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`.
-> - **Migration required:** Database migration for reward and promotion tables required.
+> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`; new statistics endpoints: `/api/statistics/*`, `/api/admin/dashboard/*`, `/api/restaurant/dashboard/*`.
+> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`, `visit_statistics`.
+> - **Migration required:** Database migration for reward, promotion, and statistics tables required.
 
 ---
 
