@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Backend
+- _No changes yet._
+### Frontend
+- _No changes yet._
+
+---
+
+## [0.2.0] - 2025-12-09
+### Backend
 #### Added
 - **Feature (rewards):** implement comprehensive reward points system with points earning, category bonuses, redemption system and admin controls.
   - Added `RewardPoint`, `RewardTransaction`, and `CategoryBonus` entities for data modeling.
