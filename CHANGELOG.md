@@ -37,6 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrated with existing statistics and analytics services for data aggregation.
   - Implemented customizable report templates for different business needs.
   - Added support for scheduled report generation and delivery.
+- **Feature (chat):** implement real-time WebSocket chat system for customer support with persistent history.
+  - Added `ChatMessage` and `ChatConversation` entities for persistent chat data storage.
+  - Created `IChatService` interface and `ChatService` implementation for chat business logic.
+  - Built repositories: `ChatMessageRepository`, `ChatConversationRepository` for data persistence.
+  - Implemented `WebSocketConfig` for real-time WebSocket communication setup.
+  - Added `ChatController` with REST endpoints for chat history and conversation management.
+  - Created DTOs: `ChatMessageDto`, `ChatConversationDto` for structured chat responses.
 
 ### Frontend
 #### Added
@@ -63,11 +70,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `RestaurantBusinessTips` page with actionable business insights.
   - Integrated report download and preview functionality.
   - Implemented responsive design for report management interface.
+- **Feature (chat):** implement real-time WebSocket chat UI components for customer support.
+  - Created `chatService.js` for API communication and WebSocket connection management.
+  - Built chat components: `CustomerChatWidget` for customer interface, `AdminChatPanel` for admin support.
+  - Implemented `ChatContext` for global chat state management and real-time updates.
+  - Added dedicated pages: `AdminChat` for support dashboard, `ChatTest` for development testing.
+  - Integrated real-time message delivery with typing indicators and online status.
+  - Added responsive design for mobile and desktop chat interfaces.
 
 > Notes:
-> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`; new statistics endpoints: `/api/statistics/*`, `/api/admin/dashboard/*`, `/api/restaurant/dashboard/*`; new report endpoints: `/api/reports/*`, `/api/admin/reports/*`, `/api/restaurant/reports/*`.
-> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`, `visit_statistics`.
-> - **Migration required:** Database migration for reward, promotion, and statistics tables required.
+> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`; new statistics endpoints: `/api/statistics/*`, `/api/admin/dashboard/*`, `/api/restaurant/dashboard/*`; new report endpoints: `/api/reports/*`, `/api/admin/reports/*`, `/api/restaurant/reports/*`; new chat endpoints: `/api/chat/*`, `/api/admin/chat/*`; WebSocket endpoints: `/ws/chat`, `/ws/admin`.
+> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`, `visit_statistics`, `chat_conversations`, `chat_messages`.
+> - **Migration required:** Database migration for reward, promotion, statistics, and chat system tables required.
 
 ---
 
