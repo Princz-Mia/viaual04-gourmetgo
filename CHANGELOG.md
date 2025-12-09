@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Built repositories: `RewardPointRepository`, `RewardTransactionRepository`, `CategoryBonusRepository`.
   - Implemented `RewardController` with REST endpoints for points management.
   - Added DTOs: `RewardPointDto`, `RewardTransactionDto` for API responses.
+- **Feature (promotions):** implement happy hour promotion system with time-based discounts, notifications and event handling.
+  - Added `HappyHour` entity for promotion data modeling with time-based constraints.
+  - Created `HappyHourNotificationService` for automated customer notifications.
+  - Built `HappyHourRepository` for promotion data access and queries.
+  - Implemented event-driven architecture with `HappyHourEvent` and `HappyHourEventListener`.
+  - Added `PromotionController` with REST endpoints for promotion management.
 
 ### Frontend
 #### Added
@@ -26,11 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Built UI components: `RewardBalance`, `RewardHistory`, `RewardRedemption`.
   - Added customer-facing `RewardsPage` and admin `AdminRewards` page.
   - Integrated reward system into order flow and user dashboard.
+- **Feature (promotions):** implement happy hour promotion UI components.
+  - Created `promotionApi.js` for API communication with promotion endpoints.
+  - Built UI components: `HappyHourBanner` for promotion display, `HappyHourModal` for details.
+  - Integrated real-time promotion notifications and customer alerts.
+  - Added responsive design for mobile and desktop promotion viewing.
 
 > Notes:
-> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`.
-> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`.
-> - **Migration required:** Database migration for reward tables required.
+> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`.
+> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`.
+> - **Migration required:** Database migration for reward and promotion tables required.
 
 ---
 
