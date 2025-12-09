@@ -45,6 +45,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `ChatController` with REST endpoints for chat history and conversation management.
   - Created DTOs: `ChatMessageDto`, `ChatConversationDto` for structured chat responses.
 
+#### Refactored
+- **Refactor (authentication):** enhance JWT system with refresh tokens, session management and improved security.
+  - Enhanced `JWTTokenProvider` with refresh token generation and validation capabilities.
+  - Created `JWTAuthenticationFilter` for improved token processing and validation.
+  - Added `AuthController` with dedicated authentication endpoints for login, refresh, and logout.
+  - Implemented `SessionManagementService` for active session tracking and management.
+  - Added `ActiveSession` entity for persistent session storage and monitoring.
+  - Built `ActiveSessionRepository` for session data persistence and cleanup operations.
+
 ### Frontend
 #### Added
 - **Feature (rewards):** implement reward points UI components and pages.
@@ -78,10 +87,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrated real-time message delivery with typing indicators and online status.
   - Added responsive design for mobile and desktop chat interfaces.
 
+#### Refactored
+- **Refactor (authentication):** enhance JWT authentication frontend with automatic token refresh and session management.
+  - Enhanced `authService.js` with automatic token refresh and session management.
+  - Improved `AuthContext` with better state management and authentication flow.
+  - Created `jwt.js` utility for token handling, validation, and automatic refresh.
+  - Integrated seamless token refresh without user interruption.
+  - Added session timeout handling and automatic logout functionality.
+
 > Notes:
-> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`; new statistics endpoints: `/api/statistics/*`, `/api/admin/dashboard/*`, `/api/restaurant/dashboard/*`; new report endpoints: `/api/reports/*`, `/api/admin/reports/*`, `/api/restaurant/reports/*`; new chat endpoints: `/api/chat/*`, `/api/admin/chat/*`; WebSocket endpoints: `/ws/chat`, `/ws/admin`.
-> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`, `visit_statistics`, `chat_conversations`, `chat_messages`.
-> - **Migration required:** Database migration for reward, promotion, statistics, and chat system tables required.
+> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`; new promotion endpoints: `/api/promotions/*`, `/api/admin/promotions/*`; new statistics endpoints: `/api/statistics/*`, `/api/admin/dashboard/*`, `/api/restaurant/dashboard/*`; new report endpoints: `/api/reports/*`, `/api/admin/reports/*`, `/api/restaurant/reports/*`; new chat endpoints: `/api/chat/*`, `/api/admin/chat/*`; WebSocket endpoints: `/ws/chat`, `/ws/admin`; enhanced authentication endpoints: `/api/auth/refresh`, `/api/auth/logout`, `/api/auth/sessions`.
+> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`, `happy_hours`, `visit_statistics`, `chat_conversations`, `chat_messages`, `active_sessions`.
+> - **Migration required:** Database migration for reward, promotion, statistics, chat system, and session management tables required.
 
 ---
 
