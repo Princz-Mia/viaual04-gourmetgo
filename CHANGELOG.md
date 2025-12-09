@@ -11,9 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Backend
-- _No changes yet._
+#### Added
+- **Feature (rewards):** implement comprehensive reward points system with points earning, category bonuses, redemption system and admin controls.
+  - Added `RewardPoint`, `RewardTransaction`, and `CategoryBonus` entities for data modeling.
+  - Created `IRewardService` interface and `RewardService` implementation for business logic.
+  - Built repositories: `RewardPointRepository`, `RewardTransactionRepository`, `CategoryBonusRepository`.
+  - Implemented `RewardController` with REST endpoints for points management.
+  - Added DTOs: `RewardPointDto`, `RewardTransactionDto` for API responses.
+
 ### Frontend
-- _No changes yet._
+#### Added
+- **Feature (rewards):** implement reward points UI components and pages.
+  - Created `rewardApi.js` for API communication.
+  - Built UI components: `RewardBalance`, `RewardHistory`, `RewardRedemption`.
+  - Added customer-facing `RewardsPage` and admin `AdminRewards` page.
+  - Integrated reward system into order flow and user dashboard.
+
+> Notes:
+> - **External behavior:** API/contract changes - new reward endpoints: `/api/rewards/*`, `/api/admin/rewards/*`.
+> - **Database schema:** New tables: `reward_points`, `reward_transactions`, `category_bonuses`.
+> - **Migration required:** Database migration for reward tables required.
 
 ---
 
