@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GourmetGo Chat Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chat-container { max-width: 600px; margin: 0 auto; }
+        .messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin: 10px 0; }
+        .message { margin: 5px 0; padding: 5px; border-radius: 5px; }
+        .customer-message { background-color: #e3f2fd; text-align: right; }
+        .admin-message { background-color: #f3e5f5; text-align: left; }
+        .input-group { display: flex; gap: 10px; margin: 10px 0; }
+        input, button { padding: 8px; }
+        input[type="text"] { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>GourmetGo Chat Demo</h2>
+        
+        <div class="input-group">
+            <input type="number" id="userId" placeholder="User ID" value="1">
+            <input type="text" id="userType" placeholder="User Type (CUSTOMER/ADMIN)" value="CUSTOMER">
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+        </div>
+        
+        <div class="input-group">
+            <input type="number" id="conversationId" placeholder="Conversation ID" value="1">
+            <input type="text" id="subject" placeholder="Subject" value="Order Issue">
+            <button onclick="startConversation()">Start Conversation</button>
+        </div>
+        
+        <div id="messages" class="messages"></div>
+        
+        <div class="input-group">
+            <input type="text" id="messageInput" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        
+        <div id="status">Disconnected</div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let currentUserId = null;
+        let currentConversationId = null;
+
+        function connect() {
+            currentUserId = document.getElementById('userId').value;
+            currentConversationId = document.getElementById('conversationId').value;
+            
+            const socket = new SockJS('/ws-chat');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                document.getElementById('status').textContent = 'Connected';
+                console.log('Connected: ' + frame);
+                
+                stompClient.subscribe('/topic/conversation/' + currentConversationId, function(message) {
+                    showMessage(JSON.parse(message.body));
+                });
+                
+                if (document.getElementById('userType').value === 'ADMIN') {
+                    stompClient.subscribe('/topic/admin/notifications', function(message) {
+                        console.log('New message notification:', JSON.parse(message.body));
+                    });
+                }
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            document.getElementById('status').textContent = 'Disconnected';
+        }
+
+        function startConversation() {
+            const customerId = document.getElementById('userId').value;
+            const subject = document.getElementById('subject').value;
+            
+            fetch('/api/chat/conversations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId: customerId, subject: subject })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentConversationId = data.data.id;
+                    document.getElementById('conversationId').value = currentConversationId;
+                }
+            });
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (content && stompClient) {
+                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
+                    conversationId: currentConversationId,
+                    senderId: currentUserId,
+                    content: content
+                }));
+                messageInput.value = '';
+            }
+        }
+
+        function showMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (message.senderType === 'CUSTOMER' ? 'customer-message' : 'admin-message');
+            messageDiv.innerHTML = `<strong>${message.senderName}:</strong> ${message.content}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
