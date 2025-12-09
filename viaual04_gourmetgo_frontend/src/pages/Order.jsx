@@ -30,10 +30,20 @@ export default function Order() {
                 // 1. Rendelés betöltése
                 const ord = await fetchOrderById(orderId);
                 setOrder(ord);
-                // 2. Étterem betöltése, ha rendelésben van restaurantId
-                if (ord.restaurantId) {
-                    const rest = await fetchRestaurant(ord.restaurantId);
-                    setRestaurant(rest);
+                // 2. Étterem betöltése, ha rendelésben van restaurant
+                if (ord.restaurant?.id) {
+                    try {
+                        const rest = await fetchRestaurant(ord.restaurant.id);
+                        setRestaurant(rest);
+                    } catch (error) {
+                        console.warn('Could not fetch restaurant details, using order data');
+                        setRestaurant(ord.restaurant);
+                    }
+                } else if (ord.restaurant) {
+                    setRestaurant(ord.restaurant);
+                } else {
+                    console.warn('No restaurant data in order');
+                    setRestaurant({ name: 'Unknown Restaurant', deliveryFee: 0 });
                 }
             } catch (err) {
                 toast.error(err.message || 'Failed to load order');
@@ -46,7 +56,7 @@ export default function Order() {
 
     const canUpdate =
         user.role.authority === 'ROLE_ADMIN' ||
-        (user.role.authority === 'ROLE_RESTAURANT' && order?.restaurantId === user.restaurantId);
+        (user.role.authority === 'ROLE_RESTAURANT' && order?.restaurant?.id === user.id);
 
     const handleChangeStatus = async (e) => {
         const newStatus = e.target.value;
@@ -71,20 +81,30 @@ export default function Order() {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
-            <Link to="/orders" className="btn btn-ghost">← Back to Orders</Link>
+            <button onClick={() => window.history.back()} className="btn btn-ghost">← Back</button>
 
             {/* Fejléc */}
             <div className="bg-white p-6 rounded-lg shadow space-y-2">
                 <h2 className="text-2xl font-bold">Order #{order.id}</h2>
-                <p>Date: {new Date(order.orderDate).toLocaleString()}</p>
+                <p>Date: {new Date(order.orderDate).toLocaleString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                })}</p>
 
                 {/* Étterem */}
                 {restaurant && (
                     <p>
                         From:&nbsp;
-                        <Link to={`/restaurants/${restaurant.id}`} className="font-medium text-blue-600 hover:underline">
-                            {restaurant.name}
-                        </Link>
+                        {restaurant.id ? (
+                            <Link to={`/restaurants/${restaurant.id}`} className="font-medium text-blue-600 hover:underline">
+                                {restaurant.name}
+                            </Link>
+                        ) : (
+                            <span className="font-medium">{restaurant.name}</span>
+                        )}
                     </p>
                 )}
 
@@ -149,6 +169,27 @@ export default function Order() {
                 </div>
             )}
 
+            {/* Used Reward Points */}
+            {order.usedRewardPoints && order.usedRewardPoints > 0 && (
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                    <p>
+                        <strong>Reward Points Used:</strong> {order.usedRewardPoints.toFixed(2)} points
+                        <span className="text-sm text-gray-600 ml-2">
+                            (${(order.usedRewardPoints / 10).toFixed(2)} discount)
+                        </span>
+                    </p>
+                </div>
+            )}
+
+            {/* Order Notes */}
+            {order.orderNotes && (
+                <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                    <p>
+                        <strong>Order Notes:</strong> {order.orderNotes}
+                    </p>
+                </div>
+            )}
+
             {/* Tétel lista */}
             <div className="space-y-4">
                 {order.orderItems.map(item => (
@@ -166,6 +207,12 @@ export default function Order() {
                     <p className="flex justify-between text-green-600">
                         <span>Coupon Discount:</span>
                         <span>-${couponValue.toFixed(2)}</span>
+                    </p>
+                )}
+                {order.usedRewardPoints && order.usedRewardPoints > 0 && (
+                    <p className="flex justify-between text-blue-600">
+                        <span>Reward Points:</span>
+                        <span>-${(order.usedRewardPoints / 10).toFixed(2)}</span>
                     </p>
                 )}
                 <p className="flex justify-between">

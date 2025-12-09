@@ -11,5 +11,9 @@ public interface IReviewService {
 
     ReviewDto addReview(UUID customerId, UUID restaurantId, Integer rating, String comment);
 
+    void deleteReview(UUID customerId, UUID restaurantId);
+
+    ReviewDto getCustomerReview(UUID customerId, UUID restaurantId);
+
     ReviewDto convertReviewToDto(Review review);
 }

@@ -37,16 +37,16 @@ public class UserEventListener {
         } else if (user instanceof Restaurant restaurant) {
             switch (event.getType()) {
                 case REGISTRATION -> emailService.sendRestaurantRegistrationEmail(
-                        restaurant.getOwnerName(),
+                        restaurant.getFullName(),
                         restaurant.getEmailAddress()
                 );
                 case APPROVED -> emailService.sendRestaurantApprovedEmail(
-                        restaurant.getOwnerName(),
+                        restaurant.getFullName(),
                         restaurant.getEmailAddress(),
                         event.getData().get("key").toString()
                 );
                 case RESET_PASSWORD -> emailService.sendPasswordResetEmail(
-                        restaurant.getOwnerName(),
+                        restaurant.getFullName(),
                         restaurant.getEmailAddress(),
                         event.getData().get("key").toString()
                 );

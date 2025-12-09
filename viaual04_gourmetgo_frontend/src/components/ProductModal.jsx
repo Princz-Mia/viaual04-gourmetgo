@@ -1,5 +1,6 @@
 import React from "react";
-import imageNotFound from "../assets/images/image_not_found.jpg"
+import imageNotFound from "../assets/images/image_not_found.jpg";
+import { getImageUrl } from "../api/imageService";
 
 const ProductModal = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
@@ -17,14 +18,16 @@ const ProductModal = ({ isOpen, onClose, product }) => {
 
         <img
           src={
-            image
+            image?.id
+              ? getImageUrl(image.id)
+              : image
               ? `http://localhost:8080${image}`
               : imageNotFound
           }
           alt={name}
           className="w-full h-64 object-cover rounded-t-lg"
           onError={(e) => {
-            e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+            e.currentTarget.onerror = null;
             e.currentTarget.src = imageNotFound;
           }}
         />

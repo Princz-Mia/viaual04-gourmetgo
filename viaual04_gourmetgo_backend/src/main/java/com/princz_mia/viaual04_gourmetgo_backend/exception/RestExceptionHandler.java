@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class RestExceptionHandler {
 
-    @ExceptionHandler(AppException.class)
+    @ExceptionHandler({AppException.class, ServiceException.class})
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
         String traceId = generateTraceId();
         log.error("Application exception [{}]: {}", traceId, ex.getMessage(), ex);

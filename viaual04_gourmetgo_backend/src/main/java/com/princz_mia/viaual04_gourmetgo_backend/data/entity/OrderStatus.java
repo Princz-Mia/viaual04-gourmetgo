@@ -25,5 +25,8 @@ public enum OrderStatus {
     DELIVERED,
 
     // Order has been cancelled either by the restaurant or the customer.
-    CANCELLED
+    CANCELLED,
+
+    // Order has been compensated with reward points.
+    COMPENSATED
 }

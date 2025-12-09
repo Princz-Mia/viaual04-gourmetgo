@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import imageNotFound from "../assets/images/image_not_found.jpg"
+import imageNotFound from "../assets/images/image_not_found.jpg";
+import { getImageUrl } from "../api/imageService";
 
 const RestaurantCard = ({
     id,
     image,
+    logo,
     name,
     hours,
     rating,
@@ -26,57 +28,66 @@ const RestaurantCard = ({
     };
 
     return (
-        <div
+        <article
             onClick={handleClick}
-            className={`card bg-white opacity-80 shadow-xl max-w-[350px] transform transition-transform duration-300 ${isOpen
-                ? "cursor-pointer hover:opacity-100"
-                : "opacity-25 pointer-events-none"
+            className={`card bg-base-100 shadow-md hover:shadow-xl rounded-2xl overflow-hidden transition-all duration-300 border border-base-200 ${isOpen
+                ? "cursor-pointer hover:-translate-y-1 hover:shadow-2xl active:scale-98"
+                : "opacity-60 pointer-events-none"
                 }`}
         >
-            <figure>
-                <img src={
-                    image
-                        ? `http://localhost:8080${image}`
-                        : imageNotFound
-                } alt={name} className="w-full h-48 object-cover"
+            {/* Image */}
+            <figure className="h-48 sm:h-52 overflow-hidden relative">
+                <img 
+                    src={
+                        logo?.id
+                            ? getImageUrl(logo.id)
+                            : image
+                            ? `http://localhost:8080${image}`
+                            : imageNotFound
+                    } 
+                    alt={name} 
+                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     onError={(e) => {
-                        e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+                        e.currentTarget.onerror = null;
                         e.currentTarget.src = imageNotFound;
-                    }} />
-            </figure>
-            <div className="p-4">
-                <h3 className="text-xl font-bold mb-1">{name}</h3>
-                <p className="text-sm text-gray-600 mb-1">Cuisine: {mainCategory}</p>
-                <p className="text-sm text-gray-600 mb-1">Hours: {hours}</p>
-                <div className="flex items-center mb-2">
-                    <div className="flex items-center">
-                        {Array.from({ length: 5 }).map((_, i) => {
-                            let starType;
-                            if (i < Math.floor(rating)) {
-                                starType = "full";
-                            } else if (i < rating) {
-                                starType = "half";
-                            } else {
-                                starType = "empty";
-                            }
-                            return (
-                                <svg
-                                    key={i}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-5 h-5"
-                                    viewBox="0 0 20 20"
-                                    fill={starType === "empty" ? "gray" : "gold"}
-                                >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.952a1 1 0 00.95.69h4.17c.969 0 1.371 1.24.588 1.81l-3.375 2.455a1 1 0 00-.363 1.118l1.287 3.95c.3.92-.755 1.688-1.538 1.118l-3.375-2.455a1 1 0 00-1.175 0l-3.375 2.455c-.783.57-1.838-.197-1.538-1.118l1.287-3.95a1 1 0 00-.363-1.118L2.044 9.38c-.783-.57-.38-1.81.588-1.81h4.17a1 1 0 00.95-.69l1.286-3.952z" />
-                                </svg>
-                            );
-                        })}
+                    }} 
+                />
+                {!isOpen && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="badge badge-error text-sm font-medium">Closed</span>
                     </div>
-                    <span className="ml-2 text-sm text-gray-700">{rating.toFixed(1)}/5</span>
+                )}
+            </figure>
+            
+            {/* Content */}
+            <div className="card-body p-5 gap-4">
+                <div className="space-y-2">
+                    <h3 className="card-title text-lg font-bold text-neutral leading-tight line-clamp-2">
+                        {name}
+                    </h3>
+                    <p className="text-sm text-neutral/60 font-medium">{mainCategory}</p>
                 </div>
-                <p className="text-sm text-gray-600">{deliveryInfo}</p>
+                
+                {/* Rating & Hours */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
+                            <span className="text-amber-500">⭐</span>
+                            <span className="text-sm font-semibold text-amber-700">{rating.toFixed(1)}</span>
+                        </div>
+                        <span className="text-sm text-neutral/60">{hours}</span>
+                    </div>
+                </div>
+                
+                {/* Delivery Info */}
+                <div className="flex items-center justify-between pt-2 border-t border-base-200">
+                    <span className="text-primary font-semibold text-sm">{deliveryInfo}</span>
+                    <button className="btn btn-primary btn-sm rounded-full px-6">
+                        View Menu
+                    </button>
+                </div>
             </div>
-        </div>
+        </article>
     );
 };
 

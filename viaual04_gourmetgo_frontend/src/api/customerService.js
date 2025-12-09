@@ -6,11 +6,28 @@ export const verify = async (key) => {
     const response = await axiosInstance.get(
       `/customers/verify/account?key=` + key
     );
-    return response;
+    return response.data;
   } catch (error) {
     toast.error(
       error.response?.data?.message || "An error occurred during verification!"
     );
+    throw error;
   }
-  return null;
+};
+
+export const findByEmail = async (email) => {
+  try {
+    const response = await axiosInstance.get(`/customers/email/${email}`);
+    return response.data.data;
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "Customer not found!"
+    );
+    throw error;
+  }
+};
+
+export const customerService = {
+  verify,
+  findByEmail
 };

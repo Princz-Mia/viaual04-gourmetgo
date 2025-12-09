@@ -9,7 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -28,5 +30,15 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Credential with id " + user.getId() + " not found"));
 
         return new CustomUserDetails(user, credential);
+    }
+    
+    @Transactional
+    public void updateUserLoginSuccess(String emailAddress) {
+        User user = userRepository.findByEmailAddress(emailAddress);
+        if (user != null) {
+            user.setLastLogin(LocalDateTime.now());
+            user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
+            userRepository.save(user);
+        }
     }
 }

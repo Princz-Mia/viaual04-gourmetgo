@@ -24,7 +24,7 @@ export async function fetchAllOrders() {
  */
 export async function fetchCustomerOrders(customerId) {
   try {
-    const res = await axiosInstance.get(`/orders/by-customer/${customerId}`);
+    const res = await axiosInstance.get(`/orders/customer/${customerId}`);
     return res.data.data;
   } catch (error) {
     toast.error(
@@ -38,7 +38,7 @@ export async function fetchCustomerOrders(customerId) {
 export async function fetchRestaurantOrders(restaurantId) {
   try {
     const res = await axiosInstance.get(
-      `/orders/by-restaurant/${restaurantId}`
+      `/orders/restaurant/${restaurantId}`
     );
     return res.data.data;
   } catch (error) {
@@ -52,12 +52,12 @@ export async function fetchRestaurantOrders(restaurantId) {
 
 export async function fetchOrderById(orderId) {
   try {
-    const res = await axiosInstance.get(`/orders/by-id/${orderId}`);
+    const res = await axiosInstance.get(`/orders/${orderId}`);
     return res.data.data;
   } catch (error) {
     toast.error(
       error.response?.data?.message ||
-        "An error occurred during updating order status!"
+        "An error occurred during fetching order!"
     );
     return null;
   }

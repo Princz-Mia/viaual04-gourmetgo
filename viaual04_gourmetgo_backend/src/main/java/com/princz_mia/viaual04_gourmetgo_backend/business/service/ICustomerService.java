@@ -13,6 +13,8 @@ public interface ICustomerService {
 
     Customer getCustomerById(UUID id);
 
+    Customer getCustomerByEmail(String email);
+
     Customer createCustomer(CreateCustomerRequest request);
 
     Customer updateCustomer(UpdateCustomerRequest request, UUID id);

@@ -20,7 +20,6 @@ public class RestaurantRegistrationDto {
     private String phoneNumber;
     @Email
     private String emailAddress;
-    private String ownerName;
     private BigDecimal deliveryFee;
     private List<String> categoryNames;
     private AddressDto address;

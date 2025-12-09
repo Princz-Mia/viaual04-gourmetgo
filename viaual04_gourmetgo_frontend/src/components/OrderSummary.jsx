@@ -22,8 +22,10 @@ export default function OrderSummary({ order }) {
                 </div>
                 <div className="text-gray-600 w-32 text-center">
                     <p className="text-sm">Date</p>
-                    <p className="font-medium">
-                        {new Date(orderDate).toLocaleDateString()}
+                    <p className="font-medium text-xs">
+                        {new Date(orderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        <br />
+                        {new Date(orderDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>
                 <div className="text-gray-600 w-32 text-center">

@@ -52,19 +52,38 @@ public class ImageService implements IImageService {
     @Override
     @Transactional
     public Image saveProductImage(MultipartFile file, UUID productId) {
-        LoggingUtils.logMethodEntry(log, "saveProductImage", "productId", productId, "fileName", file.getOriginalFilename());
+        LoggingUtils.logMethodEntry(log, "saveProductService", "productId", productId, "fileName", file.getOriginalFilename());
         Product product = productService.getProductById(productId);
+        
+        // Check if product already has an image and update it instead
+        if (product.getImage() != null) {
+            return updateImage(file, product.getImage().getId());
+        }
+        
         Image savedImage = saveImage(file, img -> img.setProduct(product));
         LoggingUtils.logBusinessEvent(log, "PRODUCT_IMAGE_SAVED", "imageId", savedImage.getId(), "productId", productId);
         return savedImage;
     }
 
     @Override
+    @Transactional
     public ImageDto saveRestaurantImage(MultipartFile file, UUID restaurantId) {
         LoggingUtils.logMethodEntry(log, "saveRestaurantImage", "restaurantId", restaurantId, "fileName", file.getOriginalFilename());
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new ResourceNotFoundException("No restaurant found"));
+        
+        // Check if restaurant already has an image and update it instead
+        if (restaurant.getLogo() != null) {
+            Image existingImage = restaurant.getLogo();
+            return convertImageToDto(updateImage(file, existingImage.getId()));
+        }
+        
         Image savedImage = saveImage(file, img -> img.setRestaurant(restaurant));
+        
+        // Update restaurant's logo reference
+        restaurant.setLogo(savedImage);
+        restaurantRepository.save(restaurant);
+        
         LoggingUtils.logBusinessEvent(log, "RESTAURANT_IMAGE_SAVED", "imageId", savedImage.getId(), "restaurantId", restaurantId);
         return convertImageToDto(savedImage);
     }

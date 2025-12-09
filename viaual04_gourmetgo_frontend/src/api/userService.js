@@ -3,36 +3,15 @@ import { decodeJwt } from "../utils/jwt";
 import axiosInstance from "./axiosConfig";
 
 /**
- * Fetch full profile by decoding the JWT for id+role,
- * then calling the appropriate endpoint.
+ * Fetch user profile using cookie-based authentication
  */
 export async function fetchProfile() {
-  const stored = JSON.parse(localStorage.getItem("user") || "{}");
-  const { token } = stored;
-  if (!token) throw new Error("No auth token found");
-
-  const claims = decodeJwt(token);
-  const id = claims.id;
-  const role = Array.isArray(claims.role) ? claims.role[0] : claims.role;
-
-  let url;
-  switch (role.authority) {
-    case "ROLE_CUSTOMER":
-      url = `/customers/${id}`;
-      break;
-    case "ROLE_RESTAURANT":
-      url = `/restaurants/${id}`;
-      break;
-    case "ROLE_ADMIN":
-      url = `/admins/${id}`;
-      break;
-    default:
-      throw new Error(`Unknown role: ${role}`);
+  try {
+    const { data } = await axiosInstance.get('/users/profile');
+    return data.data;
+  } catch (error) {
+    throw new Error('Failed to fetch user profile');
   }
-
-  const { data } = await axiosInstance.get(url);
-  // include id, role, token in the returned object
-  return { ...data.data, id, role, token };
 }
 
 /**
@@ -59,13 +38,14 @@ export async function getUsers() {
 export async function lockUser(id, locked) {
   try {
     const res = await axiosInstance.put(`/users/${id}/lock`, { locked });
+    const action = locked ? 'locked' : 'unlocked';
+    toast.success(`User successfully ${action}`);
     return res.data.data;
   } catch (error) {
-    toast.error(
-      error.response?.data?.message ||
-        "An error occurred during locking user profile!"
-    );
-    return null;
+    const errorMessage = error.response?.data?.message || 
+      `Failed to ${locked ? 'lock' : 'unlock'} user. Please try again.`;
+    toast.error(errorMessage);
+    throw error;
   }
 }
 
@@ -76,12 +56,13 @@ export async function lockUser(id, locked) {
 export async function deleteUser(id) {
   try {
     const res = await axiosInstance.delete(`/users/${id}`);
+    toast.success('User successfully deleted');
     return res.data.data;
   } catch (error) {
-    toast.error(
-      error.response?.data?.message || "An error occurred during deleting user!"
-    );
-    return null;
+    const errorMessage = error.response?.data?.message || 
+      'Failed to delete user. Please check if user has active orders or try again later.';
+    toast.error(errorMessage);
+    throw error;
   }
 }
 

@@ -40,11 +40,17 @@ public class Restaurant extends User {
         private LocalTime closingTime;
     }
 
-    private String name;
+    private String fullName; // Restaurant name for consistency with User interface
     private String phoneNumber;
-    private String ownerName;
     private BigDecimal deliveryFee;
     private boolean isApproved;
+    private Double rating = 0.0;
+    
+    @Column(name = "latitude")
+    private Double latitude;
+    
+    @Column(name = "longitude")
+    private Double longitude;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id", referencedColumnName = "id", unique = false)

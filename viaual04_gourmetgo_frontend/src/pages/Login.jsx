@@ -32,6 +32,7 @@ export default function Login() {
         navigate('/');
       }
     } catch (error) {
+      // Login attempt tracking is disabled - not working properly
       toast.error('An error occurred during login!');
     } finally {
       setLoading(false);

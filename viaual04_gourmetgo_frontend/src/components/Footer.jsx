@@ -2,21 +2,32 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-gray-200 py-6">
-      <div className="min-w-screen mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center">
-        <p className="text-sm">
-          © {new Date().getFullYear()} GourmetGo. All rights reserved.
-        </p>
-        <div className="flex space-x-4 mt-4 sm:mt-0">
-          <Link to="/privacy-policy" className="text-sm hover:underline">
-            Privacy Policy
-          </Link>
-          <Link to="/terms-of-service" className="text-sm hover:underline">
-            Terms of Service
-          </Link>
-          <Link to="/contact" className="text-sm hover:underline">
-            Contact Us
-          </Link>
+    <footer className="bg-neutral text-neutral-content py-4 sm:py-6 pb-16 sm:pb-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+          <p className="text-xs sm:text-sm text-center sm:text-left">
+            © {new Date().getFullYear()} GourmetGo. All rights reserved.
+          </p>
+          <div className="flex flex-wrap justify-center sm:justify-end gap-3 sm:gap-4">
+            <Link 
+              to="/privacy-policy" 
+              className="text-xs sm:text-sm hover:text-primary transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link 
+              to="/terms-of-service" 
+              className="text-xs sm:text-sm hover:text-primary transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link 
+              to="/contact" 
+              className="text-xs sm:text-sm hover:text-primary transition-colors"
+            >
+              Contact Us
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

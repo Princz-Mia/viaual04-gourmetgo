@@ -111,10 +111,6 @@ const Profile = () => {
               <span className="font-semibold">Member since:</span>{' '}
               {new Date(user.createdAt).toLocaleDateString()}
             </p>
-            <p>
-              <span className="font-semibold">Loyalty Points:</span>{' '}
-              <span className="badge badge-sm badge-primary">Soon to be implemented</span>
-            </p>
           </div>
 
           <div className="divider" />

@@ -45,4 +45,18 @@ public class ReviewController {
         LoggingUtils.logBusinessEvent(log, "REVIEW_ADDED", "reviewId", dto.getId(), "customerId", customer.getId(), "restaurantId", restaurantId, "rating", rating);
         return ResponseEntity.ok(new ApiResponse("Review added", dto));
     }
+
+    @DeleteMapping("/delete/{restaurantId}")
+    public ResponseEntity<ApiResponse> deleteReview(@PathVariable UUID restaurantId) {
+        Customer customer = customerService.getAuthenticatedCustomer();
+        reviewService.deleteReview(customer.getId(), restaurantId);
+        return ResponseEntity.ok(new ApiResponse("Review deleted", null));
+    }
+
+    @GetMapping("/my-review/{restaurantId}")
+    public ResponseEntity<ApiResponse> getMyReview(@PathVariable UUID restaurantId) {
+        Customer customer = customerService.getAuthenticatedCustomer();
+        ReviewDto review = reviewService.getCustomerReview(customer.getId(), restaurantId);
+        return ResponseEntity.ok(new ApiResponse("Success", review));
+    }
 }

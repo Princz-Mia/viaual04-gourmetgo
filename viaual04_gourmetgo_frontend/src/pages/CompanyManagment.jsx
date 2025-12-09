@@ -26,13 +26,16 @@ import {
   StatusLabels,
   StatusClasses
 } from "../utils/statusUtils";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import CompensationRewardModal from "../components/admin/CompensationRewardModal";
+import AdminRewards from "./AdminRewards";
 
 const roles = ["ALL", "ROLE_CUSTOMER", "ROLE_RESTAURANT"];
 
 export default function CompanyManagement() {
-  const [view, setView] = useState("users");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [view, setView] = useState(searchParams.get('tab') || "users");
 
   // Users state
   const [users, setUsers] = useState([]);
@@ -65,6 +68,7 @@ export default function CompanyManagement() {
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   const [couponModal, setCouponModal] = useState(null);
   const [couponDeleteConfirm, setCouponDeleteConfirm] = useState(null);
+  const [showCompensationModal, setShowCompensationModal] = useState(false);
 
   const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
 
@@ -82,7 +86,8 @@ export default function CompanyManagement() {
           getPendingRestaurants(),
           getCoupons(),
         ]);
-        const usersAdminRoleExcuded = u.filter((us) => us.role != "ROLE_ADMIN")
+        const usersAdminRoleExcuded = u.filter((us) => (us.role?.authority || us.role) != "ROLE_ADMIN")
+        console.log('Users data:', usersAdminRoleExcuded);
         setUsers(usersAdminRoleExcuded);
         setOrders(o);
         setPending(p);
@@ -119,12 +124,14 @@ export default function CompanyManagement() {
   // User operations
   const handleLockToggle = async (user) => {
     try {
-      await lockUser(user.id, !user.locked);
+      const newLockedState = user.isAccountNonLocked; // If account is non-locked, we want to lock it
+      await lockUser(user.id, newLockedState);
       setUsers((us) =>
-        us.map((u) => (u.id === user.id ? { ...u, locked: !u.locked } : u))
+        us.map((u) => (u.id === user.id ? { ...u, isAccountNonLocked: !newLockedState } : u))
       );
     } catch (err) {
-      console.error(err);
+      console.error('Failed to toggle user lock status:', err);
+      // UI will not update if server request fails
     }
   };
 
@@ -136,7 +143,8 @@ export default function CompanyManagement() {
       await deleteUser(id);
       setUsers((us) => us.filter((u) => u.id !== id));
     } catch (err) {
-      console.error(err);
+      console.error('Failed to delete user:', err);
+      // UI will not update if server request fails
     } finally {
       setUserDeleteConfirm(null);
     }
@@ -216,7 +224,7 @@ export default function CompanyManagement() {
   const filteredUsers = users
     .filter(
       (u) =>
-        (userFilterRole === "ALL" || u.role === userFilterRole) &&
+        (userFilterRole === "ALL" || (u.role?.authority || u.role) === userFilterRole) &&
         (u.fullName.toLowerCase().includes(userSearch.toLowerCase()) ||
           u.emailAddress.toLowerCase().includes(userSearch.toLowerCase()))
     )
@@ -255,16 +263,30 @@ export default function CompanyManagement() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* View Toggle */}
-      <div className="flex space-x-2">
-        {['users', 'orders', 'restaurants', 'coupons'].map(v => (
-          <button
-            key={v}
-            className={`btn ${view === v ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setView(v)}
-          >
-            {v === 'restaurants' ? 'Pending Rest.' : v.charAt(0).toUpperCase() + v.slice(1)}
-          </button>
-        ))}
+      <div className="flex justify-between items-center">
+        <div className="flex space-x-2">
+          {['users', 'orders', 'restaurants', 'coupons', 'rewards'].map(v => (
+            <button
+              key={v}
+              className={`btn ${view === v ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => {
+                setView(v);
+                setSearchParams({ tab: v });
+              }}
+            >
+              {v === 'restaurants' ? 'Pending Rest.' : v.charAt(0).toUpperCase() + v.slice(1)}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn btn-primary btn-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
       </div>
 
       {/* Users Panel */}
@@ -286,6 +308,15 @@ export default function CompanyManagement() {
                 <option value="idAsc">ID ↑</option>
                 <option value="idDesc">ID ↓</option>
               </select>
+              <button
+                onClick={() => window.location.reload()}
+                className="btn btn-primary btn-sm w-full"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
             </aside>
             <main className="flex-1 space-y-4">
               {filteredUsers.map(u => (
@@ -293,12 +324,13 @@ export default function CompanyManagement() {
                   <div>
                     <p className="font-semibold">{u.fullName} ({u.role})</p>
                     <p className="text-sm text-gray-500">{u.emailAddress}</p>
+                    <p className="text-xs text-blue-500">isAccountNonLocked: {String(u.isAccountNonLocked)}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
-                      className={`btn btn-sm ${u.locked ? 'btn-success' : 'btn-warning'}`}
+                      className={`btn btn-sm ${u.isAccountNonLocked ? 'btn-warning' : 'btn-success'}`}
                       onClick={() => handleLockToggle(u)}
-                    >{u.locked ? 'Unlock' : 'Lock'}</button>
+                    >{u.isAccountNonLocked ? 'Lock' : 'Unlock'}</button>
                     <button className="btn btn-error btn-sm"
                       onClick={() => confirmDeleteUser(u)}
                     >Delete</button>
@@ -350,6 +382,15 @@ export default function CompanyManagement() {
                     <option key={s} value={s}>{StatusLabels[s]}</option>
                   ))}
                 </select>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="btn btn-primary btn-sm w-full"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </button>
               </aside>
               <main className="flex-1 space-y-4">
                 {filteredOrders.map(o => (
@@ -487,6 +528,16 @@ export default function CompanyManagement() {
               </div>
             )}
 
+            {/* Used Reward Points */}
+            {selectedOrder.usedRewardPoints && selectedOrder.usedRewardPoints > 0 && (
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                <strong>Reward Points Used:</strong> {selectedOrder.usedRewardPoints.toFixed(2)} points
+                <span className="text-sm text-gray-600 ml-2">
+                  (${(selectedOrder.usedRewardPoints / 10).toFixed(2)} discount)
+                </span>
+              </div>
+            )}
+
             {/* Summary */}
             <div className="bg-base-200 p-4 rounded-lg text-right space-y-1">
               <p className="flex justify-between">
@@ -502,6 +553,12 @@ export default function CompanyManagement() {
                   <span>-${selectedOrder.coupon.value.toFixed(2)}</span>
                 </p>
               )}
+              {selectedOrder.usedRewardPoints && selectedOrder.usedRewardPoints > 0 && (
+                <p className="flex justify-between text-blue-600">
+                  <span>Reward Points:</span>
+                  <span>-${(selectedOrder.usedRewardPoints / 10).toFixed(2)}</span>
+                </p>
+              )}
               <p className="flex justify-between">
                 <span>Delivery Fee:</span>
                 <span>${selectedOrder.restaurant.deliveryFee.toFixed(2)}</span>
@@ -512,9 +569,25 @@ export default function CompanyManagement() {
                 <span>${selectedOrder.totalAmount.toFixed(2)}</span>
               </p>
             </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowCompensationModal(true)}
+                className="btn btn-warning"
+                disabled={!['CANCELLED', 'DELIVERED'].includes(selectedOrder.status)}
+              >
+                Add Compensation Reward
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <CompensationRewardModal
+        isOpen={showCompensationModal}
+        onClose={() => setShowCompensationModal(false)}
+        order={selectedOrder}
+      />
 
       {/* Pending Restaurants Panel */}
       {
@@ -620,6 +693,15 @@ export default function CompanyManagement() {
                 <button className="btn btn-primary" onClick={() => setCouponModal({ id: null, code: '', type: 'AMOUNT', value: 0, expirationDate: '' })}>
                   New Coupon
                 </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="btn btn-primary btn-sm w-full"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </button>
               </aside>
               <main className="flex-1 space-y-4">
                 {filteredCoupons.map(c => (
@@ -640,15 +722,57 @@ export default function CompanyManagement() {
                   <div className="modal modal-open">
                     <div className="modal-box max-w-lg">
                       <h3 className="font-bold text-lg mb-4">{couponModal.id ? 'Edit' : 'New'} Coupon</h3>
-                      <input value={couponModal.code} onChange={e => setCouponModal({ ...couponModal, code: e.target.value })} placeholder="Code" className="input input-bordered w-full mb-2" />
-                      <select value={couponModal.type} onChange={e => setCouponModal({ ...couponModal, type: e.target.value })} className="select select-bordered w-full mb-2">
-                        <option value="AMOUNT">Amount</option>
-                        <option value="FREE_SHIP">Free Shipping</option>
-                      </select>
+                      <div className="mb-2">
+                        <label className="label">
+                          <span className="label-text font-medium">Coupon Code *</span>
+                        </label>
+                        <input 
+                          value={couponModal.code} 
+                          onChange={e => setCouponModal({ ...couponModal, code: e.target.value })} 
+                          placeholder="SAVE10" 
+                          className="input input-bordered w-full" 
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="label">
+                          <span className="label-text font-medium">Coupon Type *</span>
+                        </label>
+                        <select value={couponModal.type} onChange={e => setCouponModal({ ...couponModal, type: e.target.value })} className="select select-bordered w-full">
+                          <option value="AMOUNT">Amount</option>
+                          <option value="FREE_SHIP">Free Shipping</option>
+                        </select>
+                      </div>
                       {couponModal.type === 'AMOUNT' && (
-                        <input type="number" value={couponModal.value} onChange={e => setCouponModal({ ...couponModal, value: parseFloat(e.target.value) })} placeholder="Value" className="input input-bordered w-full mb-2" />
+                        <div className="mb-2">
+                          <label className="label">
+                            <span className="label-text font-medium">Discount Amount ($) *</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral/60">$</span>
+                            <input 
+                              type="number" 
+                              step="1"
+                              min="1"
+                              value={couponModal.value} 
+                              onChange={e => setCouponModal({ ...couponModal, value: parseInt(e.target.value) })} 
+                              placeholder="5" 
+                              className="input input-bordered w-full pl-8" 
+                            />
+                          </div>
+                        </div>
                       )}
-                      <input type="date" min={today} value={couponModal.expirationDate} onChange={e => setCouponModal({ ...couponModal, expirationDate: e.target.value })} className="input input-bordered w-full mb-4" />
+                      <div className="mb-4">
+                        <label className="label">
+                          <span className="label-text font-medium">Expiration Date *</span>
+                        </label>
+                        <input 
+                          type="date" 
+                          min={today} 
+                          value={couponModal.expirationDate} 
+                          onChange={e => setCouponModal({ ...couponModal, expirationDate: e.target.value })} 
+                          className="input input-bordered w-full" 
+                        />
+                      </div>
                       <div className="modal-action">
                         <button className="btn" onClick={() => setCouponModal(null)}>Cancel</button>
                         <button className="btn btn-primary" onClick={() => {
@@ -680,6 +804,9 @@ export default function CompanyManagement() {
             </div>
         )
       }
+
+      {/* Rewards Panel */}
+      {view === 'rewards' && <AdminRewards />}
     </div >
   );
 };

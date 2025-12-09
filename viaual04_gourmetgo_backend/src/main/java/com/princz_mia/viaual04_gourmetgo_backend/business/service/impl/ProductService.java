@@ -4,11 +4,11 @@ import com.princz_mia.viaual04_gourmetgo_backend.business.service.IProductServic
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Image;
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Product;
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.ProductCategory;
+import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Restaurant;
 import com.princz_mia.viaual04_gourmetgo_backend.data.repository.ImageRepository;
 import com.princz_mia.viaual04_gourmetgo_backend.data.repository.ProductCategoryRepository;
 import com.princz_mia.viaual04_gourmetgo_backend.data.repository.ProductRepository;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.AlreadyExistsException;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.AppException;
+import com.princz_mia.viaual04_gourmetgo_backend.exception.ServiceException;
 import com.princz_mia.viaual04_gourmetgo_backend.exception.ErrorType;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.ImageDto;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.ProductDto;
@@ -40,7 +40,7 @@ public class ProductService implements IProductService
     public Product addProduct(ProductDto dto) {
         LoggingUtils.logMethodEntry(log, "addProduct", "name", dto.getName(), "category", dto.getCategory().getName());
         if (productExists(dto.getName(), dto.getCategory().getName())) {
-            throw new AlreadyExistsException("Product already exists!");
+            throw new ServiceException("Product already exists!", ErrorType.ALREADY_EXISTS);
         }
 
         ProductCategory productCategory = Optional.ofNullable(productCategoryRepository.findByName(dto.getCategory().getName()))
@@ -67,6 +67,7 @@ public class ProductService implements IProductService
                 .price(dto.getPrice())
                 .inventory(dto.getInventory())
                 .category(productCategory)
+                .restaurant(modelMapper.map(dto.getRestaurant(), Restaurant.class))
                 .build();
     }
 
@@ -74,7 +75,7 @@ public class ProductService implements IProductService
     public Product getProductById(UUID id) {
         LoggingUtils.logMethodEntry(log, "getProductById", "id", id);
         return productRepository.findById(id)
-                .orElseThrow(() -> new AppException("Product not found", ErrorType.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new ServiceException("Product not found", ErrorType.RESOURCE_NOT_FOUND));
     }
 
     @Override
@@ -84,7 +85,7 @@ public class ProductService implements IProductService
                 .ifPresentOrElse(product -> {
                     productRepository.delete(product);
                     LoggingUtils.logBusinessEvent(log, "PRODUCT_DELETED", "productId", id, "name", product.getName());
-                }, () -> { throw new AppException("Product not found", ErrorType.RESOURCE_NOT_FOUND); });
+                }, () -> { throw new ServiceException("Product not found", ErrorType.RESOURCE_NOT_FOUND); });
     }
 
     @Override
@@ -93,7 +94,7 @@ public class ProductService implements IProductService
         Product updatedProduct = productRepository.findById(productId)
                 .map(existingProduct -> updateExistingProduct(existingProduct, dto))
                 .map(productRepository::save)
-                .orElseThrow(() -> new AppException("Product not found", ErrorType.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new ServiceException("Product not found", ErrorType.RESOURCE_NOT_FOUND));
         LoggingUtils.logBusinessEvent(log, "PRODUCT_UPDATED", "productId", productId, "name", updatedProduct.getName());
         return updatedProduct;
     }

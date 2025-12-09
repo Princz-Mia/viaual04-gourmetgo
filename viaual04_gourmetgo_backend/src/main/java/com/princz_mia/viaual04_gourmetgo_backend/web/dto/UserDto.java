@@ -1,5 +1,6 @@
 package com.princz_mia.viaual04_gourmetgo_backend.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class UserDto {
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
     private Integer loginAttempts;
+    
+    @JsonProperty("isAccountNonLocked")
     private boolean isAccountNonLocked;
+    
+    @JsonProperty("isEnabled")
     private boolean isEnabled;
 }

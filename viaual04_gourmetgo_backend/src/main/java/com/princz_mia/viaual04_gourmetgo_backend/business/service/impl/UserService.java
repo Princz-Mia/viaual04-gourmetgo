@@ -57,6 +57,14 @@ public class UserService implements IUserService
     }
 
     @Override
+    public UserDto getUserById(UUID userId) {
+        LoggingUtils.logMethodEntry(log, "getUserById", "userId", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return convertUserToDto(user);
+    }
+
+    @Override
     @Transactional
     public void lockUser(UUID userId, boolean locked) {
         LoggingUtils.logMethodEntry(log, "lockUser", "userId", userId, "locked", locked);
@@ -97,7 +105,7 @@ public class UserService implements IUserService
             u = c;
         } else if (u instanceof Restaurant) {
             Restaurant r = (Restaurant) u;
-            r.setOwnerName(dto.getFullName());
+            r.setFullName(dto.getFullName());
             restaurantRepository.save(r);
             u = r;
         } else if (u instanceof Admin) {
@@ -178,7 +186,7 @@ public class UserService implements IUserService
                 .fullName(
                         user instanceof Admin       ? ((Admin) user).getFullName() :
                                 user instanceof Customer    ? ((Customer) user).getFullName() :
-                                        user instanceof Restaurant  ? ((Restaurant) user).getOwnerName() :
+                                        user instanceof Restaurant  ? ((Restaurant) user).getFullName() :
                                                 ""
                 )
                 .emailAddress(user.getEmailAddress())

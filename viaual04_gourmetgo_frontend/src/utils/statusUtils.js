@@ -6,6 +6,7 @@ export const OrderStatuses = [
   "OUT_FOR_DELIVERY",
   "DELIVERED",
   "CANCELLED",
+  "COMPENSATED",
 ];
 
 export const StatusLabels = {
@@ -16,6 +17,7 @@ export const StatusLabels = {
   OUT_FOR_DELIVERY: "Out for Delivery",
   DELIVERED: "Delivered",
   CANCELLED: "Cancelled",
+  COMPENSATED: "Compensated",
 };
 
 export const StatusClasses = {
@@ -26,4 +28,5 @@ export const StatusClasses = {
   OUT_FOR_DELIVERY: "badge badge-info text-right w-32",
   DELIVERED: "badge badge-success text-right w-32",
   CANCELLED: "badge badge-error text-right w-32",
+  COMPENSATED: "badge badge-accent text-right w-32",
 };

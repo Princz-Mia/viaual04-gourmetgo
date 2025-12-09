@@ -6,10 +6,13 @@ import ReviewItem from "../components/ReviewItem";
 import ReviewModal from "../components/ReviewModal";
 import { fetchRestaurant } from "../api/restaurantService";
 import { fetchProductsByRestaurantId } from "../api/productService";
-import { fetchReviewsByRestaurant, canReviewRestaurant, addReview } from "../api/reviewService";
+import { fetchReviewsByRestaurant, canReviewRestaurant, addReview, deleteReview, getMyReview } from "../api/reviewService";
+import { promotionApi } from "../api/promotionApi";
 import { useCart } from "../contexts/CartContext";
+import { getImageUrl } from "../api/imageService";
 import imageNotFound from "../assets/images/image_not_found.jpg"
 import { getTodayHours, isRestaurantOpenNow } from "../utils/isOpen";
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Restaurant = () => {
   const { restaurantId } = useParams();
@@ -17,6 +20,9 @@ const Restaurant = () => {
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [canReview, setCanReview] = useState(false);
+  const [myReview, setMyReview] = useState(null);
+  const [showMyReviewOnly, setShowMyReviewOnly] = useState(false);
+  const [categoryBonuses, setCategoryBonuses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [view, setView] = useState("products");
@@ -33,16 +39,29 @@ const Restaurant = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [restData, productData, revs, allowed] = await Promise.all([
+        const [restData, productData, revs, bonuses] = await Promise.all([
           fetchRestaurant(restaurantId),
           fetchProductsByRestaurantId(restaurantId),
           fetchReviewsByRestaurant(restaurantId),
-          canReviewRestaurant(restaurantId)
+          promotionApi.getActiveCategoryBonuses()
         ]);
         setRestaurant(restData);
         setProducts(productData);
         setReviews(revs);
-        setCanReview(allowed);
+        setCategoryBonuses(bonuses.data || []);
+        
+        // Try to check review permission, but don't fail if user is not authenticated
+        try {
+          const allowed = await canReviewRestaurant(restaurantId);
+          setCanReview(allowed);
+          if (allowed) {
+            const customerReview = await getMyReview(restaurantId);
+            setMyReview(customerReview);
+          }
+        } catch (reviewErr) {
+          // User not authenticated, can't review
+          setCanReview(false);
+        }
       } catch (err) {
         console.error("Failed to load data", err);
       } finally {
@@ -64,11 +83,30 @@ const Restaurant = () => {
   const handleSubmitReview = async ({ rating, comment }) => {
     try {
       const newRev = await addReview(restaurantId, rating, comment);
-      setReviews([newRev, ...reviews]);
+      setMyReview(newRev);
+      // Refresh reviews and restaurant data
+      const [updatedReviews, updatedRestaurant] = await Promise.all([
+        fetchReviewsByRestaurant(restaurantId),
+        fetchRestaurant(restaurantId)
+      ]);
+      setReviews(updatedReviews);
+      setRestaurant(updatedRestaurant);
     } catch (err) {
       console.error("Failed to submit review", err);
     } finally {
       setReviewModalOpen(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (await deleteReview(restaurantId)) {
+      setMyReview(null);
+      const [updatedReviews, updatedRestaurant] = await Promise.all([
+        fetchReviewsByRestaurant(restaurantId),
+        fetchRestaurant(restaurantId)
+      ]);
+      setReviews(updatedReviews);
+      setRestaurant(updatedRestaurant);
     }
   };
 
@@ -79,16 +117,22 @@ const Restaurant = () => {
     : products;
 
   // Review filter logic
-  const filteredReviews = reviewFilter
+  let filteredReviews = reviewFilter
     ? reviews.filter(r => r.ratingValue === reviewFilter)
     : reviews;
+  
+  if (showMyReviewOnly && myReview) {
+    filteredReviews = [myReview];
+  }
   const totalReviews = reviews.length;
   const ratingCounts = [5, 4, 3, 2, 1].map(r => ({
     rating: r,
     count: reviews.filter(rv => rv.ratingValue === r).length
   }));
 
-  if (loading || !restaurant) return <p className="text-center py-8">Loading...</p>;
+  if (loading || !restaurant) {
+    return <LoadingSpinner text="Loading restaurant..." />;
+  }
 
   const todayInfo = getTodayHours(restaurant.openingHours);
   const hoursLabel = todayInfo?.label || "Closed Today";
@@ -99,20 +143,28 @@ const Restaurant = () => {
       <div className="flex flex-col md:flex-row items-center bg-white p-6 rounded-lg shadow mb-6">
         <img
           src={
-            restaurant.logo?.downloadUrl
+            restaurant.logo?.id
+              ? getImageUrl(restaurant.logo.id)
+              : restaurant.logo?.downloadUrl
               ? `http://localhost:8080${restaurant.logo.downloadUrl}`
               : imageNotFound
           }
           alt={`${restaurant.name} logo`}
           className="w-24 h-24 rounded-full mr-6 mb-4 md:mb-0"
           onError={(e) => {
-            e.currentTarget.onerror = null; // végtelen ciklus elkerülése
+            e.currentTarget.onerror = null;
             e.currentTarget.src = imageNotFound;
           }}
         />
         <div>
           <h1 className="text-4xl font-bold">{restaurant.name}</h1>
-          <p className="text-gray-600">Hours: {hoursLabel}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
+              <span className="text-amber-500">⭐</span>
+              <span className="text-sm font-semibold text-amber-700">{restaurant.rating?.toFixed(1) || '0.0'}</span>
+            </div>
+            <span className="text-gray-600">• Hours: {hoursLabel}</span>
+          </div>
           <p className={`mt-2 font-semibold ${isOpen ? "text-green-600" : "text-red-600"}`}>
             {isOpen ? "Open Now" : "Closed"}
           </p>
@@ -198,36 +250,79 @@ const Restaurant = () => {
         <main className="flex-1 space-y-6">
           {view === "products" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts?.map(p => (
-                <ProductCard
-                  key={p.id}
-                  image={p.image?.downloadUrl}
-                  name={p.name}
-                  description={p.description}
-                  price={p.price}
-                  onAddToCart={() => handleAddToCart(p.id)}
-                  onCardClick={() => handleCardClick(p)}
-                  clickable
-                />
-              ))}
+              {filteredProducts?.map(p => {
+                const categoryBonus = categoryBonuses.find(bonus => 
+                  bonus.categoryName === p.category?.name
+                );
+                return (
+                  <ProductCard
+                    key={p.id}
+                    image={p.image?.downloadUrl}
+                    productImage={p.image}
+                    name={p.name}
+                    description={p.description}
+                    price={p.price}
+                    categories={[p.category]}
+                    categoryBonus={categoryBonus}
+                    onAddToCart={() => handleAddToCart(p.id)}
+                    onCardClick={() => handleCardClick(p)}
+                    clickable
+                  />
+                );
+              })}
             </div>
           ) : (
             <>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Reviews</h2>
-                {canReview ? (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setReviewModalOpen(true)}
-                  >
-                    Add Review
-                  </button>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    Only customers who ordered can review.
-                  </p>
-                )}
+                <div className="flex gap-2 items-center">
+                  {canReview && (
+                    <>
+                      {myReview ? (
+                        <div className="flex gap-2">
+                          <button
+                            className="btn btn-outline btn-sm"
+                            onClick={() => setReviewModalOpen(true)}
+                          >
+                            Edit Review
+                          </button>
+                          <button
+                            className="btn btn-error btn-sm"
+                            onClick={handleDeleteReview}
+                          >
+                            Delete Review
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => setReviewModalOpen(true)}
+                        >
+                          Add Review
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {!canReview && (
+                    <p className="text-sm text-gray-500">
+                      Only customers who ordered can review.
+                    </p>
+                  )}
+                </div>
               </div>
+              {myReview && (
+                <div className="mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary mr-2"
+                      checked={showMyReviewOnly}
+                      onChange={(e) => setShowMyReviewOnly(e.target.checked)}
+                    />
+                    Show only my review
+                  </label>
+                </div>
+              )}
               <div className="space-y-4">
                 {filteredReviews.map(r => (
                   <ReviewItem key={r.id} {...r} />
@@ -240,6 +335,7 @@ const Restaurant = () => {
                 isOpen={reviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
                 onSubmit={handleSubmitReview}
+                existingReview={myReview}
               />
             </>
           )}

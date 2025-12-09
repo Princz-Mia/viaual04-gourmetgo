@@ -1,5 +1,6 @@
 package com.princz_mia.viaual04_gourmetgo_backend.data.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.CartItem;
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.Customer;
 import jakarta.persistence.*;
@@ -55,6 +56,7 @@ public class Cart {
      * The customer who owns this cart.
      * This association is required and fetched eagerly.
      */
+    @JsonIgnore
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;

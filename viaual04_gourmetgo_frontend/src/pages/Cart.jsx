@@ -1,12 +1,17 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import CartItem from "../components/CartItem";
 import { useCart } from "../contexts/CartContext";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from "react-router-dom";
 import { validateCoupon } from "../api/couponService";
+import RewardRedemption from "../components/RewardRedemption";
+import LoadingSpinner from '../components/LoadingSpinner';
+import { AuthContext } from "../contexts/AuthContext";
+import { rewardApi } from "../api/rewardApi";
 
 const Cart = () => {
+  const { user } = useContext(AuthContext);
   const {
     items,
     total,
@@ -14,13 +19,31 @@ const Cart = () => {
     updateItem,
     removeItem,
     clear: clearCart,
-    applyCoupon
+    applyCoupon,
+    pointsToRedeem,
+    setPoints
   } = useCart();
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);      // a CouponDto objektum
   const [pendingCoupon, setPendingCoupon] = useState("");        // csak a kód
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      const fetchBalance = async () => {
+        try {
+          const response = await rewardApi.getRewardBalance(user.id);
+          const data = response.data?.data || response.data || {};
+          setUserBalance(data.balance || 0);
+        } catch (error) {
+          console.error('Error fetching balance:', error);
+        }
+      };
+      fetchBalance();
+    }
+  }, [user]);
 
   // A kosárból az első tétel éttermének díja
   const baseDeliveryFee = useMemo(() => {
@@ -88,12 +111,17 @@ const Cart = () => {
     ? appliedCoupon.value
     : 0;
 
+  // Reward points discount
+  const rewardDiscount = pointsToRedeem / 10;
+
   // Végösszegek
-  const subTotal = total;
-  const totalAfterDiscount = Math.max(0, subTotal - discountValue);
+  const subTotal = items.length > 0 ? total : 0;
+  const totalAfterDiscount = Math.max(0, subTotal - discountValue - rewardDiscount);
   const grandTotal = totalAfterDiscount + effectiveDeliveryFee;
 
-  if (loading) return <p className="text-center py-8">Loading cart...</p>;
+  if (loading) {
+    return <LoadingSpinner text="Loading cart..." />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -140,6 +168,14 @@ const Cart = () => {
             <span>${effectiveDeliveryFee.toFixed(2)}</span>
           </div>
 
+          {/* Reward Points */}
+          {items.length > 0 && (
+            <RewardRedemption
+              orderTotal={subTotal}
+              onPointsChange={setPoints}
+            />
+          )}
+
           {/* Kupon mező */}
           <div>
             <label className="block font-medium mb-2">Coupon Code</label>
@@ -165,11 +201,17 @@ const Cart = () => {
             )}
           </div>
 
-          {/* Kedvezmény sor */}
+          {/* Kedvezmény sorok */}
           {discountValue > 0 && (
             <div className="flex justify-between text-green-600 font-medium">
-              <span>Discount:</span>
+              <span>Coupon Discount:</span>
               <span>-${discountValue.toFixed(2)}</span>
+            </div>
+          )}
+          {rewardDiscount > 0 && (
+            <div className="flex justify-between text-blue-600 font-medium">
+              <span>Reward Points ({pointsToRedeem} pts):</span>
+              <span>-${rewardDiscount.toFixed(2)}</span>
             </div>
           )}
 
@@ -180,9 +222,35 @@ const Cart = () => {
           </div>
 
           {/* Checkout */}
-          <Link to="/checkout">
-            <button className="btn btn-accent w-full">Proceed to Checkout</button>
-          </Link>
+          <div>
+            {(() => {
+              const isCartEmpty = items.length === 0;
+              const isPointsInvalid = pointsToRedeem > 0 && (pointsToRedeem < 25 || pointsToRedeem < 0);
+              const hasInsufficientPoints = pointsToRedeem > userBalance;
+              const isDisabled = isCartEmpty || isPointsInvalid || hasInsufficientPoints;
+              
+              return (
+                <>
+                  <Link to={!isDisabled ? "/checkout" : "#"} className={isDisabled ? "pointer-events-none" : ""}>
+                    <button 
+                      className={`btn w-full ${
+                        !isDisabled
+                          ? "btn-accent" 
+                          : "btn-disabled bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      disabled={isDisabled}
+                    >
+                      Proceed to Checkout
+                    </button>
+                  </Link>
+                  {isCartEmpty && <p className="text-error text-sm mt-2">Your cart is empty</p>}
+                  {pointsToRedeem > 0 && pointsToRedeem < 25 && <p className="text-error text-sm mt-2">Minimum 25 points required</p>}
+                  {pointsToRedeem < 0 && <p className="text-error text-sm mt-2">Points cannot be negative</p>}
+                  {hasInsufficientPoints && <p className="text-error text-sm mt-2">You only have {userBalance} points available</p>}
+                </>
+              );
+            })()} 
+          </div>
 
           {/* Clear Cart */}
           {items.length > 0 && (

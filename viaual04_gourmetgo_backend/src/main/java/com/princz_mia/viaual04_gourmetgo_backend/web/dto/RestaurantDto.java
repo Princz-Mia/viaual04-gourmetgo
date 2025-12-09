@@ -20,9 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RestaurantDto {
     private UUID id;
-    private String name;
+    private String name; // Maps to fullName in entity for API compatibility
     private String phoneNumber;
-    private String ownerName;
     private String emailAddress;
     @Min(0)
     private BigDecimal deliveryFee;
@@ -35,6 +34,9 @@ public class RestaurantDto {
     private boolean isApproved;
     private boolean isAccountNonLocked;
     private boolean isEnabled;
+    private Double latitude;
+    private Double longitude;
+    private Double rating;
 
     @Data
     @Builder

@@ -108,10 +108,9 @@ public class RestaurantService implements IRestaurantService
         });
 
         Restaurant restaurant = new Restaurant();
-        restaurant.setName(reg.getName());
+        restaurant.setFullName(reg.getName());
         restaurant.setEmailAddress(reg.getEmailAddress());
         restaurant.setPhoneNumber(reg.getPhoneNumber());
-        restaurant.setOwnerName(reg.getOwnerName());
         restaurant.setDeliveryFee(reg.getDeliveryFee());
         restaurant.setApproved(false);
         restaurant.setAccountNonLocked(true);
@@ -130,7 +129,7 @@ public class RestaurantService implements IRestaurantService
         Confirmation confirmation = new Confirmation(restaurant);
         confirmationRepository.save(confirmation);
         
-        LoggingUtils.logBusinessEvent(log, "RESTAURANT_REGISTERED", "restaurantId", restaurant.getId(), "name", restaurant.getName());
+        LoggingUtils.logBusinessEvent(log, "RESTAURANT_REGISTERED", "restaurantId", restaurant.getId(), "name", restaurant.getFullName());
         return modelMapper.map(restaurant, RestaurantDto.class);
     }
 
@@ -138,7 +137,9 @@ public class RestaurantService implements IRestaurantService
     @Transactional
     public RestaurantDto convertRestaurantToDto(Restaurant restaurant) {
         LoggingUtils.logMethodEntry(log, "convertRestaurantToDto", "restaurantId", restaurant.getId());
-        return modelMapper.map(restaurant, RestaurantDto.class);
+        RestaurantDto dto = modelMapper.map(restaurant, RestaurantDto.class);
+        dto.setRating(restaurant.getRating());
+        return dto;
     }
 
     @Override
@@ -163,7 +164,7 @@ public class RestaurantService implements IRestaurantService
                         .orElseThrow(() -> new AppException("Confirmation key was not found in database", ErrorType.RESOURCE_NOT_FOUND));
 
         publisher.publishEvent(new UserEvent(restaurant, EventType.APPROVED, Map.of("key", confirmation.getKey())));
-        LoggingUtils.logBusinessEvent(log, "RESTAURANT_APPROVED", "restaurantId", id, "name", restaurant.getName());
+        LoggingUtils.logBusinessEvent(log, "RESTAURANT_APPROVED", "restaurantId", id, "name", restaurant.getFullName());
     }
 
     @Override
@@ -171,7 +172,7 @@ public class RestaurantService implements IRestaurantService
         LoggingUtils.logMethodEntry(log, "rejectRestaurant", "id", id);
         Restaurant restaurant = getRestaurantById(id);
         restaurantRepository.delete(restaurant);
-        LoggingUtils.logBusinessEvent(log, "RESTAURANT_REJECTED", "restaurantId", id, "name", restaurant.getName());
+        LoggingUtils.logBusinessEvent(log, "RESTAURANT_REJECTED", "restaurantId", id, "name", restaurant.getFullName());
     }
 
     @Override
@@ -205,9 +206,8 @@ public class RestaurantService implements IRestaurantService
             throw new AppException("Delivery fee cannot be negative", ErrorType.VALIDATION_ERROR);
         }
 
-        r.setName(dto.getName());
+        r.setFullName(dto.getName());
         r.setPhoneNumber(dto.getPhoneNumber());
-        r.setOwnerName(dto.getOwnerName());
         r.setDeliveryFee(dto.getDeliveryFee());
 
         List<RestaurantCategory> newCats = dto.getCategories().stream()
@@ -239,7 +239,7 @@ public class RestaurantService implements IRestaurantService
         r.setOpeningHours(newHours);
 
         restaurantRepository.save(r);
-        LoggingUtils.logBusinessEvent(log, "RESTAURANT_UPDATED", "restaurantId", id, "name", r.getName());
+        LoggingUtils.logBusinessEvent(log, "RESTAURANT_UPDATED", "restaurantId", id, "name", r.getFullName());
         return modelMapper.map(r, RestaurantDto.class);
     }
 

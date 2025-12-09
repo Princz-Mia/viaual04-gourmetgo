@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public interface IUserService {
     List<UserDto> getAllUsers();
+    UserDto getUserById(UUID userId);
     void lockUser(UUID userId, boolean locked);
     void deleteUser(UUID userId);
 

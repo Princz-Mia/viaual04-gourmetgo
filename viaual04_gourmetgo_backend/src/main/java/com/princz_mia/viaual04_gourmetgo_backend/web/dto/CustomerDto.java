@@ -20,6 +20,7 @@ public class CustomerDto {
     private String phoneNumber;
     private List<OrderDto> orders;
     private CartDto cart;
+    private RewardPointDto rewardPoint;
 
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;

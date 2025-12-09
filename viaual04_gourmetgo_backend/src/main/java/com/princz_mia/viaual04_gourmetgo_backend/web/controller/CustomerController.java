@@ -25,6 +25,23 @@ public class CustomerController {
 
     private final ICustomerService customerService;
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ApiResponse> getCustomerByEmail(@PathVariable String email) {
+        LoggingUtils.logMethodEntry(log, "getCustomerByEmail", "email", LoggingUtils.maskSensitiveData(email));
+        
+        try {
+            Customer customer = customerService.getCustomerByEmail(email);
+            CustomerDto customerDto = customerService.convertCustomerToDto(customer);
+            
+            LoggingUtils.logBusinessEvent(log, "CUSTOMER_RETRIEVED_BY_EMAIL", "customerId", customer.getId());
+            
+            return ResponseEntity.ok(new ApiResponse("Customer retrieved successfully", customerDto));
+        } catch (Exception e) {
+            LoggingUtils.logError(log, "Error retrieving customer by email", e, "email", LoggingUtils.maskSensitiveData(email));
+            throw e;
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getCustomerById(@PathVariable UUID id) {
         LoggingUtils.logMethodEntry(log, "getCustomerById", "id", id);

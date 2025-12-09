@@ -24,6 +24,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"customer_id", "restaurant_id"}))
 public class Review {
 
     @Id

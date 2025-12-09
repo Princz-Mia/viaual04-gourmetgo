@@ -5,11 +5,13 @@ import './index.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { CartProvider } from './contexts/CartContext.jsx';
+import { ChatProvider } from './contexts/ChatContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
     <CartProvider>
-      <App />
+      <ChatProvider>
+        <App />
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -23,6 +25,7 @@ createRoot(document.getElementById('root')).render(
         theme="light"
         transition={Slide}
       />
+      </ChatProvider>
     </CartProvider>
   </AuthProvider>,
 );

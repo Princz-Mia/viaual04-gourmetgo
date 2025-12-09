@@ -38,3 +38,24 @@ export async function addReview(restaurantId, rating, comment) {
   }
   return null;
 }
+
+export async function deleteReview(restaurantId) {
+  try {
+    await axiosInstance.delete(`/reviews/delete/${restaurantId}`);
+    return true;
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "An error occurred during deleting review!"
+    );
+    return false;
+  }
+}
+
+export async function getMyReview(restaurantId) {
+  try {
+    const res = await axiosInstance.get(`/reviews/my-review/${restaurantId}`);
+    return res.data.data;
+  } catch (error) {
+    return null;
+  }
+}

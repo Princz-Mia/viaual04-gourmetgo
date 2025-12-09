@@ -17,6 +17,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -37,8 +38,11 @@ public class Order {
     @UuidGenerator(style = UuidGenerator.Style.RANDOM)
     private UUID id;
 
-    private LocalDate orderDate;
+    @Column(name = "order_date")
+    private LocalDateTime orderDate;
+    
     private BigDecimal totalAmount;
+    private BigDecimal usedRewardPoints = BigDecimal.ZERO;
     private String orderNotes;
     private String deliveryInstructions;
 

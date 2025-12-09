@@ -3,12 +3,13 @@ package com.princz_mia.viaual04_gourmetgo_backend.business.service.impl;
 import com.princz_mia.viaual04_gourmetgo_backend.business.service.ICouponService;
 import com.princz_mia.viaual04_gourmetgo_backend.business.service.ICartService;
 import com.princz_mia.viaual04_gourmetgo_backend.business.service.IOrderService;
+import com.princz_mia.viaual04_gourmetgo_backend.business.service.impl.RewardService;
+import org.springframework.context.ApplicationEventPublisher;
 import com.princz_mia.viaual04_gourmetgo_backend.config.logging.LoggingUtils;
 import com.princz_mia.viaual04_gourmetgo_backend.data.entity.*;
 import com.princz_mia.viaual04_gourmetgo_backend.data.repository.*;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.AppException;
+import com.princz_mia.viaual04_gourmetgo_backend.exception.ServiceException;
 import com.princz_mia.viaual04_gourmetgo_backend.exception.ErrorType;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.ResourceNotFoundException;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.AddressDto;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +38,9 @@ public class OrderService implements IOrderService {
     private final CustomerRepository customerRepository;
     private final RestaurantRepository restaurantRepository;
     private final CouponRepository couponRepository;
-    private final ICouponService couponService;
-    private final AddressRepository addressRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
+    private final OrderProcessingService orderProcessingService;
+    private final RewardService rewardService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<OrderDto> getAllOrders() {
@@ -64,13 +65,13 @@ public class OrderService implements IOrderService {
         try {
             OrderDto order = orderRepository.findById(orderId)
                     .map(this::convertToDto)
-                    .orElseThrow(() -> new ResourceNotFoundException("Order not found!"));
+                    .orElseThrow(() -> new ServiceException("Order not found!", ErrorType.RESOURCE_NOT_FOUND));
             
             LoggingUtils.logBusinessEvent(log, "ORDER_RETRIEVED", "orderId", orderId);
             LoggingUtils.logPerformance(log, "getOrder", System.currentTimeMillis() - startTime);
             
             return order;
-        } catch (ResourceNotFoundException e) {
+        } catch (ServiceException e) {
             LoggingUtils.logError(log, "Order not found", e, "orderId", orderId);
             throw e;
         }
@@ -119,122 +120,22 @@ public class OrderService implements IOrderService {
                 customer.getId(), req.getRestaurant().getId());
             
             Cart cart = cartService.getCartByCustomerId(customer.getId());
-            if (cart.getItems().isEmpty()) {
-                log.warn("Order placement failed - empty cart for customer: {}", customer.getId());
-                throw new AppException("Cart is empty", ErrorType.BUSINESS_RULE_VIOLATION);
-            }
+            log.debug("Cart retrieved with {} items", cart.getItems().size());
+
+            Order order = orderProcessingService.createOrderFromRequest(customer, cart, req);
+
+            Order saved = orderRepository.save(order);
+            log.info("Order saved with ID: {}", saved.getId());
             
-            log.debug("Cart validated with {} items", cart.getItems().size());
-
-        Order order = new Order();
-        order.setCustomer(customer);
-        order.setOrderDate(LocalDate.now());
-        order.setStatus(OrderStatus.PENDING);
-        order.setOrderNotes(req.getOrderNotes());
-        order.setDeliveryInstructions(req.getDeliveryInstructions());
-
-        AddressDto billDto = req.getBillingInformation().getAddress();
-        Address billingAddr = Address.builder()
-                .unitNumber(billDto.getUnitNumber())
-                .addressLine(billDto.getAddressLine())
-                .city(billDto.getCity())
-                .postalCode(billDto.getPostalCode())
-                .region(billDto.getRegion())
-                .build();
-        addressRepository.save(billingAddr);
-
-        Order.BillingInformation bi = new Order.BillingInformation();
-        bi.setFullName(req.getBillingInformation().getFullName());
-        bi.setPhoneNumber(req.getBillingInformation().getPhoneNumber());
-        bi.setAddress(billingAddr);
-        order.setBillingInformation(bi);
-
-        Address shippingAddr;
-        if (req.getShippingInformation() != null) {
-            AddressDto shipDto = req.getShippingInformation().getAddress();
-            shippingAddr = Address.builder()
-                    .unitNumber(shipDto.getUnitNumber())
-                    .addressLine(shipDto.getAddressLine())
-                    .city(shipDto.getCity())
-                    .postalCode(shipDto.getPostalCode())
-                    .region(shipDto.getRegion())
-                    .build();
-            addressRepository.save(shippingAddr);
-
-            Order.ShippingInformation si = new Order.ShippingInformation();
-            si.setFullName(req.getShippingInformation().getFullName());
-            si.setPhoneNumber(req.getShippingInformation().getPhoneNumber());
-            si.setAddress(shippingAddr);
-            order.setShippingInformation(si);
-        } else {
-            Order.ShippingInformation si = new Order.ShippingInformation();
-            si.setFullName(bi.getFullName());
-            si.setPhoneNumber(bi.getPhoneNumber());
-            si.setAddress(billingAddr);
-            order.setShippingInformation(si);
-        }
-
-        PaymentMethod pm = paymentMethodRepository.findById(req.getPaymentMethod().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Payment method not found"));
-        order.setPaymentMethod(pm);
-
-        List<OrderItem> orderItems = cart.getItems().stream().map(ci -> {
-            Product p = ci.getProduct();
-            if (p.getInventory() < ci.getQuantity()) {
-                throw new AppException("Insufficient inventory for " + p.getName(), ErrorType.BUSINESS_RULE_VIOLATION);
-            }
-            p.setInventory(p.getInventory() - ci.getQuantity());
-            productRepository.save(p);
-
-            return OrderItem.builder()
-                    .order(order)
-                    .product(p)
-                    .quantity(ci.getQuantity())
-                    .price(ci.getUnitPrice())
-                    .build();
-        }).toList();
-        order.setOrderItems(new HashSet<>(orderItems));
-
-        BigDecimal itemsTotal = orderItems.stream()
-                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        Restaurant restaurant = restaurantRepository.findById(req.getRestaurant().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
-
-        Coupon coupon = null;
-        if (req.getCoupon() != null && StringUtils.hasText(req.getCoupon().getCode())) {
-            coupon = couponService.validateCoupon(customer.getId(), req.getCoupon().getCode());
-        }
-
-        if (coupon != null) {
-            order.setCoupon(coupon);
-        }
-
-        BigDecimal finalTotal = itemsTotal.add(restaurant.getDeliveryFee());
-        if (coupon != null) {
-            if (coupon.getType() == CouponType.AMOUNT) {
-                finalTotal = finalTotal.subtract(coupon.getValue());
-            } else if (coupon.getType() == CouponType.FREE_SHIP) {
-                finalTotal = finalTotal.subtract(restaurant.getDeliveryFee());
-            }
-            couponService.recordUsage(coupon, customer);
-        }
-        order.setTotalAmount(finalTotal.max(BigDecimal.ZERO));
-
-        order.setRestaurant(restaurant);
-
-        Order saved = orderRepository.save(order);
-        log.info("Order saved with ID: {}", saved.getId());
-        
-        cartService.clearCart(cart.getId());
-        log.debug("Cart cleared for customer: {}", customer.getId());
-        
-        LoggingUtils.logBusinessEvent(log, "ORDER_PLACED", "orderId", saved.getId(), "customerId", customer.getId(), "restaurantId", restaurant.getId(), "totalAmount", saved.getTotalAmount(), "itemCount", orderItems.size(), "couponUsed", coupon != null);
-        LoggingUtils.logPerformance(log, "placeOrder", System.currentTimeMillis() - startTime);
-        log.info("Order placement completed successfully for order: {}", saved.getId());
-        
-        return saved;
+            eventPublisher.publishEvent(saved);
+            cartService.clearCart(cart.getId());
+            log.debug("Cart cleared for customer: {}", customer.getId());
+            
+            LoggingUtils.logBusinessEvent(log, "ORDER_PLACED", "orderId", saved.getId(), "customerId", customer.getId(), "restaurantId", order.getRestaurant().getId(), "totalAmount", saved.getTotalAmount());
+            LoggingUtils.logPerformance(log, "placeOrder", System.currentTimeMillis() - startTime);
+            log.info("Order placement completed successfully for order: {}", saved.getId());
+            
+            return saved;
         } catch (Exception e) {
             LoggingUtils.logError(log, "Error placing order", e, "customerId", customer.getId(), "restaurantId", req.getRestaurant().getId());
             throw e;
@@ -248,10 +149,27 @@ public class OrderService implements IOrderService {
         
         try {
             Order order = orderRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Order was not found"));
+                    .orElseThrow(() -> new ServiceException("Order was not found", ErrorType.RESOURCE_NOT_FOUND));
 
+            OrderStatus previousStatus = order.getStatus();
             order.setStatus(status);
-            orderRepository.save(order);
+            Order saved = orderRepository.save(order);
+            
+            // Publish order event for real-time updates
+            eventPublisher.publishEvent(saved);
+            
+            // Trigger revenue recalculation for cancelled orders
+            if (status == OrderStatus.CANCELLED) {
+                log.info("Order cancelled, revenue will be recalculated on next dashboard refresh");
+            }
+            
+            // Handle reward processing based on status change
+            if (status == OrderStatus.DELIVERED) {
+                rewardService.awardPointsForOrder(order);
+            } else if (status == OrderStatus.CANCELLED &&
+                (previousStatus == OrderStatus.CONFIRMED || previousStatus == OrderStatus.PREPARING)) {
+                rewardService.compensateFailedOrder(order);
+            }
             
             LoggingUtils.logBusinessEvent(log, "ORDER_STATUS_UPDATED", "orderId", id, "newStatus", status);
             LoggingUtils.logPerformance(log, "updateStatus", System.currentTimeMillis() - startTime);
@@ -268,10 +186,10 @@ public class OrderService implements IOrderService {
         
         try {
             Customer customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                    .orElseThrow(() -> new ServiceException("Customer not found", ErrorType.RESOURCE_NOT_FOUND));
 
             Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
+                    .orElseThrow(() -> new ServiceException("Restaurant not found", ErrorType.RESOURCE_NOT_FOUND));
 
             boolean exists = orderRepository.existsByCustomer_IdAndRestaurant_Id(customer.getId(), restaurant.getId());
             
@@ -295,6 +213,8 @@ public class OrderService implements IOrderService {
 
     @Override
     public OrderDto convertToDto(Order order) {
-        return modelMapper.map(order, OrderDto.class);
+        OrderDto dto = modelMapper.map(order, OrderDto.class);
+        dto.setUsedRewardPoints(order.getUsedRewardPoints());
+        return dto;
     }
 }

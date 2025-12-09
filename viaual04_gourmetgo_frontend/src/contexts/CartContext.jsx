@@ -17,7 +17,8 @@ const initialState = {
     loading: false,
     error: null,
     cartId: null,
-    coupon: null
+    coupon: null,
+    pointsToRedeem: 0
 };
 
 function cartReducer(state, action) {
@@ -33,13 +34,17 @@ function cartReducer(state, action) {
                 cartId: action.payload.cartId
             };
         case 'FETCH_CART_CLEAR':
-            return { ...state, loading: false, items: [], total: 0, cartId: null };
+            return { ...state, loading: false, items: [], total: 0, cartId: null, pointsToRedeem: 0 };
         case 'FETCH_CART_ERROR':
-            return { ...state, loading: false, error: action.payload, items: [], total: 0, cartId: null };
+            return { ...state, loading: false, error: action.payload, items: [], total: 0, cartId: null, pointsToRedeem: 0 };
         case 'APPLY_COUPON':
             return { ...state, coupon: action.payload };
         case 'CLEAR_COUPON':
             return { ...state, coupon: null };
+        case 'SET_POINTS':
+            return { ...state, pointsToRedeem: action.payload };
+        case 'CLEAR_POINTS':
+            return { ...state, pointsToRedeem: 0 };
         default:
             return state;
     }
@@ -80,7 +85,8 @@ export const CartProvider = ({ children }) => {
 
     // React to user role changes
     useEffect(() => {
-        if (user?.role.authority === 'ROLE_CUSTOMER') {
+        const userRole = user?.role?.authority || user?.role;
+        if (userRole === 'ROLE_CUSTOMER') {
             loadCart();
         } else {
             // Clear cart for non-customers
@@ -89,7 +95,12 @@ export const CartProvider = ({ children }) => {
     }, [user]);
 
     const addItem = async (productId, qty = 1) => {
-        if (user?.role.authority !== 'ROLE_CUSTOMER') return;
+        const userRole = user?.role?.authority || user?.role;
+        if (!user || userRole !== 'ROLE_CUSTOMER') {
+            toast.info('Please log in to add items to cart');
+            window.location.href = '/login';
+            return;
+        }
         try {
             await apiAddToCart(productId, qty);
             await loadCart();
@@ -100,7 +111,8 @@ export const CartProvider = ({ children }) => {
     };
 
     const updateItem = async (productId, qty) => {
-        if (user?.role.authority !== 'ROLE_CUSTOMER') return;
+        const userRole = user?.role?.authority || user?.role;
+        if (userRole !== 'ROLE_CUSTOMER') return;
         try {
             await apiUpdateCartItem(productId, qty);
             await loadCart();
@@ -111,7 +123,8 @@ export const CartProvider = ({ children }) => {
     };
 
     const removeItem = async (productId) => {
-        if (user?.role.authority !== 'ROLE_CUSTOMER') return;
+        const userRole = user?.role?.authority || user?.role;
+        if (userRole !== 'ROLE_CUSTOMER') return;
         try {
             await apiRemoveCartItem(productId);
             await loadCart();
@@ -122,10 +135,11 @@ export const CartProvider = ({ children }) => {
     };
 
     const clear = async () => {
-        if (user?.role.authority !== 'ROLE_CUSTOMER' || !state.cartId) return;
+        const userRole = user?.role?.authority || user?.role;
+        if (userRole !== 'ROLE_CUSTOMER' || !state.cartId) return;
         try {
             await apiClearCart(state.cartId);
-            await loadCart();
+            dispatch({ type: 'FETCH_CART_CLEAR' });
             toast.success('Cart cleared');
         } catch (e) {
             toast.error(e.message || 'Failed to clear cart');
@@ -140,6 +154,14 @@ export const CartProvider = ({ children }) => {
         dispatch({ type: 'CLEAR_COUPON' });
     };
 
+    const setPoints = (points) => {
+        dispatch({ type: 'SET_POINTS', payload: points });
+    };
+
+    const clearPoints = () => {
+        dispatch({ type: 'CLEAR_POINTS' });
+    };
+
     return (
         <CartContext.Provider
             value={{
@@ -148,8 +170,11 @@ export const CartProvider = ({ children }) => {
                 loading: state.loading,
                 error: state.error,
                 coupon: state.coupon,
+                pointsToRedeem: state.pointsToRedeem,
                 applyCoupon,
                 clearCoupon,
+                setPoints,
+                clearPoints,
                 addItem,
                 updateItem,
                 removeItem,

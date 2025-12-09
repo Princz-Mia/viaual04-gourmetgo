@@ -6,10 +6,12 @@ import { AuthContext } from "../contexts/AuthContext";
 import { placeOrder } from "../api/orderService";
 import { toast } from "react-toastify";
 import { fetchPaymentMethods } from "../api/paymentService";
+import { rewardBalanceRef } from "../components/Header";
+import { rewardApi } from "../api/rewardApi";
 
 const Checkout = () => {
   const { user } = useContext(AuthContext);
-  const { items, total, coupon, clear: clearCart } = useCart();
+  const { items, total, coupon, pointsToRedeem, setPoints, clear: clearCart } = useCart();
   const navigate = useNavigate();
 
   const [sameAsBilling, setSameAsBilling] = useState(true);
@@ -26,17 +28,31 @@ const Checkout = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [notes, setNotes] = useState("");
+  const [userRewardBalance, setUserRewardBalance] = useState(0);
+
 
   useEffect(() => {
+    // Redirect to cart if empty
+    if (!items || items.length === 0) {
+      toast.error("Your cart is empty. Please add items before checkout.");
+      navigate("/cart");
+      return;
+    }
+
     (async () => {
       try {
-        const methods = await fetchPaymentMethods();
+        const [methods, rewardResponse] = await Promise.all([
+          fetchPaymentMethods(),
+          rewardApi.getRewardBalance(user.id)
+        ]);
         setPaymentMethods(methods);
+        const rewardData = rewardResponse.data?.data || rewardResponse.data || {};
+        setUserRewardBalance(rewardData.balance || 0);
       } catch {
         toast.error("Failed to load payment methods");
       }
     })();
-  }, []);
+  }, [items, navigate]);
 
   const handleBillingChange = (e) => {
     const { name, value } = e.target;
@@ -50,12 +66,26 @@ const Checkout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation checks
     if (!items.length) {
       toast.error("Your cart is empty.");
       return;
     }
     if (!selectedPayment) {
       toast.error("Please select a payment method.");
+      return;
+    }
+    if (pointsToRedeem < 0) {
+      toast.error("Reward points cannot be negative.");
+      return;
+    }
+    if (pointsToRedeem > userRewardBalance) {
+      toast.error(`You only have ${userRewardBalance} reward points available.`);
+      return;
+    }
+    if (coupon && (!coupon.code || !coupon.value)) {
+      toast.error("Invalid coupon applied.");
       return;
     }
 
@@ -81,18 +111,40 @@ const Checkout = () => {
       })),
       totalAmount: total,
       restaurant: items[0].restaurant,
+      pointsToRedeem: pointsToRedeem,
     };
 
     const created = await placeOrder(orderDto);
     if (created) {
       toast.success("Order placed successfully!");
       clearCart();
+      // Clear points from cart context if points were used
+      if (pointsToRedeem > 0) {
+        setPoints(0);
+      }
+      // Always refresh reward balance after order (customer earns points)
+      if (rewardBalanceRef?.current) {
+        setTimeout(() => {
+          rewardBalanceRef.current.refresh();
+        }, 1000);
+      }
+
       navigate("/orders");
     }
   };
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate('/cart')}
+          className="mr-4 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-3xl font-bold">Checkout</h1>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Billing */}
         <section className="bg-white p-6 rounded-lg shadow-lg">
@@ -177,6 +229,8 @@ const Checkout = () => {
           </div>
         </section>
 
+
+
         {/* Notes */}
         <section className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold mb-4">Order Notes</h2>
@@ -187,6 +241,56 @@ const Checkout = () => {
             className="textarea textarea-bordered w-full"
             rows={4}
           />
+        </section>
+
+        {/* Order Summary */}
+        <section className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+            {items[0]?.restaurant?.deliveryFee && (
+              <div className="flex justify-between">
+                <span>Delivery Fee:</span>
+                <span>${parseFloat(items[0].restaurant.deliveryFee).toFixed(2)}</span>
+              </div>
+            )}
+            {coupon && (
+              <div className="flex justify-between text-green-600">
+                <span>Coupon Discount ({coupon.code}):</span>
+                <span>-${coupon.type === 'AMOUNT' ? coupon.value.toFixed(2) : (coupon.type === 'FREE_SHIP' && items[0]?.restaurant?.deliveryFee ? parseFloat(items[0].restaurant.deliveryFee).toFixed(2) : '0.00')}</span>
+              </div>
+            )}
+            {pointsToRedeem > 0 && (
+              <div className="flex justify-between text-blue-600">
+                <span>Reward Points ({pointsToRedeem} pts):</span>
+                <span>-${(pointsToRedeem * 0.10).toFixed(2)}</span>
+              </div>
+            )}
+            <hr />
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total:</span>
+              <span>${(() => {
+                let finalTotal = total;
+                if (items[0]?.restaurant?.deliveryFee) {
+                  finalTotal += parseFloat(items[0].restaurant.deliveryFee);
+                }
+                if (coupon) {
+                  if (coupon.type === 'AMOUNT') {
+                    finalTotal -= coupon.value;
+                  } else if (coupon.type === 'FREE_SHIP' && items[0]?.restaurant?.deliveryFee) {
+                    finalTotal -= parseFloat(items[0].restaurant.deliveryFee);
+                  }
+                }
+                if (pointsToRedeem > 0) {
+                  finalTotal -= (pointsToRedeem * 0.10);
+                }
+                return Math.max(0, finalTotal).toFixed(2);
+              })()}</span>
+            </div>
+          </div>
         </section>
 
         {/* Submit */}

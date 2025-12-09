@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -105,6 +106,7 @@ public class RestaurantController {
     }
 
     @GetMapping("/pending")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> getPending() {
         LoggingUtils.logMethodEntry(log, "getPending");
         long startTime = System.currentTimeMillis();
@@ -118,6 +120,7 @@ public class RestaurantController {
     }
 
     @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> approve(@PathVariable UUID id) {
         LoggingUtils.logMethodEntry(log, "approve", "id", id);
         long startTime = System.currentTimeMillis();
@@ -136,6 +139,7 @@ public class RestaurantController {
     }
 
     @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> reject(@PathVariable UUID id) {
         LoggingUtils.logMethodEntry(log, "reject", "id", id);
         long startTime = System.currentTimeMillis();
@@ -154,6 +158,7 @@ public class RestaurantController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT') and @restaurantAccessControl.canAccess(authentication, #id) or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> updateRestaurant(
             @PathVariable UUID id,
             @RequestBody @Valid RestaurantDto dto

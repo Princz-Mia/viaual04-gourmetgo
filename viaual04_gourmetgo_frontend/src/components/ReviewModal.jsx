@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
-    const [rating, setRating] = useState(5);
-    const [comment, setComment] = useState("");
+const ReviewModal = ({ isOpen, onClose, onSubmit, existingReview }) => {
+    const [rating, setRating] = useState(existingReview?.ratingValue || 5);
+    const [comment, setComment] = useState(existingReview?.comment || "");
 
     const handleSubmit = () => {
-        onSubmit({ id: Date.now(), user: 'You', date: new Date(), rating, comment });
-        onClose();
-        setRating(5);
-        setComment("");
+        onSubmit({ rating, comment });
+        if (!existingReview) {
+            setRating(5);
+            setComment("");
+        }
     };
+
+    // Update form when existingReview changes
+    useEffect(() => {
+        if (existingReview) {
+            setRating(existingReview.ratingValue);
+            setComment(existingReview.comment || "");
+        } else {
+            setRating(5);
+            setComment("");
+        }
+    }, [existingReview]);
 
     if (!isOpen) return null;
     return (
         <div className="modal modal-open">
             <div className="modal-box max-w-lg">
-                <h3 className="font-bold text-lg mb-4">Write a Review</h3>
+                <h3 className="font-bold text-lg mb-4">{existingReview ? 'Edit Review' : 'Write a Review'}</h3>
                 <div className="mb-4">
                     <label className="block mb-2">Rating</label>
                     <select
@@ -40,7 +52,7 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
                 </div>
                 <div className="modal-action">
                     <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                    <button className="btn btn-primary" onClick={handleSubmit}>{existingReview ? 'Update' : 'Submit'}</button>
                 </div>
             </div>
         </div>

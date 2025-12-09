@@ -54,6 +54,21 @@ public class UserController {
         }
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse> getProfile() {
+        LoggingUtils.logMethodEntry(log, "getProfile");
+        try {
+            User user = userService.getAuthenticatedCustomer();
+            UserDto userDto = userService.getUserById(user.getId());
+            LoggingUtils.logBusinessEvent(log, "USER_PROFILE_RETRIEVED", "userId", user.getId());
+            return ResponseEntity.ok(new ApiResponse("Profile retrieved", userDto));
+        } catch (ResourceNotFoundException ex) {
+            LoggingUtils.logError(log, "User not found for profile retrieval", ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(ex.getMessage(), null));
+        }
+    }
+
     @PutMapping("/profile")
     public ResponseEntity<ApiResponse> updateProfile(
             @RequestBody @Valid ProfileUpdateDto dto

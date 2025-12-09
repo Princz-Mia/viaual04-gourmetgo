@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -125,6 +126,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> addProduct(@Valid @RequestBody ProductDto dto) {
         LoggingUtils.logMethodEntry(log, "addProduct", "name", dto.getName(), "restaurantId", dto.getRestaurant().getId());
         long startTime = System.currentTimeMillis();
@@ -140,6 +142,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> updateProduct(@Valid @RequestBody ProductDto dto, @PathVariable UUID id) {
         LoggingUtils.logMethodEntry(log, "updateProduct", "id", id, "name", dto.getName());
         long startTime = System.currentTimeMillis();
@@ -154,6 +157,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> deleteProduct(@PathVariable UUID id) {
         LoggingUtils.logMethodEntry(log, "deleteProduct", "id", id);
         long startTime = System.currentTimeMillis();

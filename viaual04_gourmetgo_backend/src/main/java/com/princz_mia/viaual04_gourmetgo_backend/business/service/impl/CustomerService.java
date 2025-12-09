@@ -12,8 +12,8 @@ import com.princz_mia.viaual04_gourmetgo_backend.data.repository.CredentialRepos
 import com.princz_mia.viaual04_gourmetgo_backend.data.repository.CustomerRepository;
 import com.princz_mia.viaual04_gourmetgo_backend.events.EventType;
 import com.princz_mia.viaual04_gourmetgo_backend.events.UserEvent;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.AlreadyExistsException;
-import com.princz_mia.viaual04_gourmetgo_backend.exception.ResourceNotFoundException;
+import com.princz_mia.viaual04_gourmetgo_backend.exception.ServiceException;
+import com.princz_mia.viaual04_gourmetgo_backend.exception.ErrorType;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.CreateCustomerRequest;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.CustomerDto;
 import com.princz_mia.viaual04_gourmetgo_backend.web.dto.UpdateCustomerRequest;
@@ -51,13 +51,13 @@ public class CustomerService implements ICustomerService {
         try {
             log.debug("Fetching customer with ID: {}", id);
             Customer customer = customerRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + id));
+                    .orElseThrow(() -> new ServiceException("Customer not found with ID: " + id, ErrorType.RESOURCE_NOT_FOUND));
             
             LoggingUtils.logBusinessEvent(log, "CUSTOMER_FETCHED", "customerId", id, "customerEmail", LoggingUtils.maskSensitiveData(customer.getEmailAddress()));
             LoggingUtils.logPerformance(log, "getCustomerById", System.currentTimeMillis() - startTime);
             
             return customer;
-        } catch (ResourceNotFoundException e) {
+        } catch (ServiceException e) {
             LoggingUtils.logError(log, "Customer not found", e, "customerId", id);
             throw e;
         }
@@ -104,7 +104,7 @@ public class CustomerService implements ICustomerService {
                         return customer;
                     }).orElseThrow(() -> {
                         LoggingUtils.logError(log, "Customer creation failed - email already exists", null, "email", LoggingUtils.maskSensitiveData(request.getEmailAddress()));
-                        return new AlreadyExistsException("Customer already exists with email: " + request.getEmailAddress());
+                        return new ServiceException("Customer already exists with email: " + request.getEmailAddress(), ErrorType.ALREADY_EXISTS);
                     });
         } catch (Exception e) {
             LoggingUtils.logError(log, "Error creating customer", e, "email", LoggingUtils.maskSensitiveData(request.getEmailAddress()));
@@ -154,12 +154,14 @@ public class CustomerService implements ICustomerService {
 
     private Confirmation getCustomerConfirmation(String key) {
         return Optional.ofNullable(confirmationRepository.findByKey(key))
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid confirmation key: " + key));
+                .orElseThrow(() -> new ServiceException("Invalid confirmation key: " + key, ErrorType.RESOURCE_NOT_FOUND));
     }
 
-    private Customer getCustomerByEmail(String emailAddress) {
+    @Override
+    public Customer getCustomerByEmail(String emailAddress) {
+        LoggingUtils.logMethodEntry(log, "getCustomerByEmail", "email", LoggingUtils.maskSensitiveData(emailAddress));
         return Optional.ofNullable(customerRepository.findByEmailAddressIgnoreCase(emailAddress))
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with email: " + emailAddress));
+                .orElseThrow(() -> new ServiceException("Customer not found with email: " + emailAddress, ErrorType.RESOURCE_NOT_FOUND));
     }
 
     @Override
@@ -173,7 +175,7 @@ public class CustomerService implements ICustomerService {
                 existingCustomer.setPhoneNumber(request.getPhoneNumber());
                 existingCustomer.setEmailAddress(request.getEmailAddress());
                 return customerRepository.save(existingCustomer);
-            }).orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + id));
+            }).orElseThrow(() -> new ServiceException("Customer not found with ID: " + id, ErrorType.RESOURCE_NOT_FOUND));
             
             LoggingUtils.logBusinessEvent(log, "CUSTOMER_UPDATED", "customerId", id, "email", LoggingUtils.maskSensitiveData(request.getEmailAddress()));
             LoggingUtils.logPerformance(log, "updateCustomer", System.currentTimeMillis() - startTime);
@@ -195,7 +197,7 @@ public class CustomerService implements ICustomerService {
                 customerRepository.delete(customer);
                 LoggingUtils.logBusinessEvent(log, "CUSTOMER_DELETED", "customerId", id, "email", LoggingUtils.maskSensitiveData(customer.getEmailAddress()));
             }, () -> {
-                throw new ResourceNotFoundException("Customer not found with ID: " + id);
+                throw new ServiceException("Customer not found with ID: " + id, ErrorType.RESOURCE_NOT_FOUND);
             });
             
             LoggingUtils.logPerformance(log, "deleteCustomer", System.currentTimeMillis() - startTime);
